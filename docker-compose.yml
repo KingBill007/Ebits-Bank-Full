@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: ebits_mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./ebits_bank_BACKEND
+    container_name: ebits_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      CONNECTION_STRING: mongodb://mongo:27017/Ebits_Bank
+      API_URL: /ebits/v1
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./ebits_bank_FRONTEND
+    container_name: ebits_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      API_URL: /ebits/v1
+    depends_on:
+      - backend
+volumes:
+  mongo_data:

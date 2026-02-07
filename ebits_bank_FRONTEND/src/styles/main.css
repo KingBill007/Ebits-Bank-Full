@@ -1,0 +1,358 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.App {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  font-family: 'Poppins', sans-serif;
+  padding-block: 50px;
+}
+
+.container {
+  background-color: white;
+  text-align: center;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 350px;
+}
+
+.logoImg {
+  width: 80px;
+  margin-bottom: 0px;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.form {
+  text-align: left; 
+  margin-bottom: 15px;
+}
+
+.form label {
+  display: block;
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+.loginInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.forgot {
+  color: #0047ab;
+  font-size: 13px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.signInBtn {
+  background-color: #0047ab;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+}
+
+.signUpBtnLight {
+  background-color: #0000001b;
+  color: rgba(0, 0, 0, 0.47);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+}
+
+.signInBtn:hover {
+  background-color: #003a8c;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.screen {
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.header {
+    height: 10%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-inline: 4%;
+}
+
+.leftHeader {
+    width: 50%;
+    height: 80%;
+    align-items: center;
+    display: flex;
+}
+.rightHeader {
+    width: 50%;
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    padding-right: 15px;
+}
+
+.exitBttn {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    min-width: 40px;
+    min-height: 37px;
+    padding-top: 3px;
+    margin-left: 12px;
+    cursor: pointer;
+}
+
+.logoImg {
+  width: 80px;
+  height: 95%;
+}
+
+.textHeaderleft {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+}
+.textHeaderright {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.content {
+    padding-top: 50px;
+    padding-inline:5%;
+    padding-bottom: 20px;
+}
+
+.topContent {
+    width: 100%;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.blueBttn {
+  background-color: rgb(62, 117, 255);
+  width: 65px;
+  height: 21px;
+  border: 1px solid rgb(62, 117, 255);
+  border-radius: 10px;
+  color: white;
+}
+
+.accountCard {
+    width:35%;
+    min-height: 180px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content:space-between;
+    padding: 7px;
+    padding-inline: 50px;
+}
+.accountCardLeft{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 80%;
+}
+.accountCardRight {
+  display: flex;
+  align-items: center;
+}
+
+.bottomContent {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    height: 700px;
+    overflow: hidden;
+}
+.upperBttm{
+    display: flex;
+    justify-content:space-between ;
+    padding-inline: 50px;
+    height: 50px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+select {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    min-height: 35px;
+    padding-inline: 7px;
+    cursor: pointer;
+}
+
+/*table*/
+.table-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 98%;
+  background-color: white;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  text-align: left;
+  padding: 12px;
+}
+
+th {
+  background-color: #0077b6;
+  color: white;
+  text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #e3f2fd;
+}
+
+
+.lowerBttm{
+    display: flex;
+    justify-content: center;
+}
+
+.profileContent {
+    padding-top: 50px;
+    padding-inline:27%;
+    padding-bottom: 20px;
+}
+.backBttn {
+    background-color: white;
+    height: 35px;
+    width: 170px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+.info {
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    padding: 20px;
+}
+.pTitle {
+    display: flex;
+    border-bottom: 1px solid #cccccc81;
+}
+.userImg {
+    width: 100px
+}
+.pTitleText {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.pBody {
+    display: flex;
+    flex-direction: column;
+    padding-block: 20px;
+}
+.pBody label {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+.pInput{
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    padding-inline: 10px;
+}
+.pUpdate {
+    background-color: rgba(0, 76, 255, 0.551);
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.errorOverlay {
+  position: fixed;
+  inset: 0;                    /* covers whole screen */
+  background: rgba(0, 0, 0, 0); /* fully transparent */
+  display: flex;
+  justify-content: flex-end;   /* push to right */
+  align-items: flex-end;       /* push to bottom */
+  pointer-events: none;        /* so background clicks pass through */
+}
+.errorContent {
+  background: #ff0000c2;
+  color: white;
+  padding: 15px 25px;
+  font-weight: bold;
+  /* pointer-events: auto;        enables clicking on the modal */
+  border-radius: 10px;
+  min-width: 400px;
+  max-width: 50%;
+  margin: 20px 30px 30px 20px;  
+  outline: none;
+  border: none;
+  /*animation styling*/
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 300ms ease, transform 300ms ease;    
+}
+
+.errorContent.ReactModal__Content--after-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.errorContent.ReactModal__Content--before-close {
+  opacity: 0;
+  transform: translateY(20px);
+}

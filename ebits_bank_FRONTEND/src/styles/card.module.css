@@ -1,0 +1,31 @@
+.bttnBlue{
+    background-color: blue;
+    width: 47%;
+    height: 35px;
+    border: 0px;
+    box-shadow: none;
+    border-radius:8px;
+    color: white;
+    cursor: pointer;
+}
+.bttnBlue:hover{
+    background-color: rgb(1, 1, 95);
+}
+.bttnWhite{
+    background-color: rgba(64, 63, 63, 0.148);
+    width: 47%;
+    height: 35px;
+    border: 0px;
+    box-shadow: none;
+    border-radius:8px;
+    color: rgb(0, 0, 0);
+    margin-left: 10px;
+    cursor: pointer;
+}
+.bttnWhite:hover{
+    background-color: rgba(176, 176, 176, 0.155);
+}
+.btnBox{
+    width:100%;
+    display: flex;
+}
