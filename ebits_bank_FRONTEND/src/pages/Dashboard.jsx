@@ -12,6 +12,7 @@ import styles from '../styles/dashboard.module.css';
 import { FaPlus } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { Oval } from 'react-loader-spinner';//loading spinner
+import { IoArrowUndoCircleOutline } from "react-icons/io5";
 
 
 function Dashboard () {
@@ -27,6 +28,7 @@ function Dashboard () {
     const [activeType, setactiveType] = useState('');
     const [createType, setcreatType] = useState('Current');
     const [depOpen,setdepOpen] = useState(false)
+    const [revOpen,setrevOpen] = useState(false)
     const [createOpen,setcreateOpen] = useState(false)
     const [hasAccount, sethasAccount] = useState(false)
     const userId = Cookies.get('userId');
@@ -135,10 +137,21 @@ function Dashboard () {
             }
             checkAccounts()
             setdepOpen(false);
+            setrevOpen(false);
             setisLoading(false)
         }catch(err){
             showError(err)
         }
+    }
+
+    //Reverse 
+    const reverseFunc = async (amount,Type,accNo)=>{
+        setdesData(`Reversal for ${Type}, Amout=${amount}`);
+        setactiveType(Type);
+        setactiveaccNo(accNo);
+        setdepAmount(-amount);
+        setmethod('Deposit');
+        setrevOpen(true);
     }
 
     //Create an account in the database
@@ -213,7 +226,7 @@ function Dashboard () {
                             </thead>
                             <tbody>
                                 {data.filter(item => selectVal==='All' || item.accType=== selectVal).map((info)=>
-                                <tr key={info._id}>
+                                <tr key={info._id} style={{position:'relative'}}>
                                     <td>{(()=>{
                                         //Date function
                                         const date = new Date(info.date);
@@ -227,7 +240,7 @@ function Dashboard () {
                                     })()}</td>
                                     <td>{info.description}</td>
                                     <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accType}</td>
-                                    <td>{info.Value}</td>
+                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accType,info.accNumber)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
                                 </tr>
                                 )}
                             </tbody>
@@ -275,6 +288,29 @@ function Dashboard () {
                             </select>   
                             <button onClick={createAccount}>Create account</button>
                         </div>
+                </Modal>
+                <Modal //modal for Reverse
+                    name="reverseModal"
+                    isOpen={revOpen} 
+                    onRequestClose={() => setrevOpen(false)} 
+                    className={styles.modalContent} 
+                    overlayClassName={styles.modalOverlay} 
+                >
+                        <h2> Are you sure you want to reverse from {activeType} Account</h2>
+                        <button onClick={depositFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                            {isLoading ?
+                                <Oval
+                                    height={20}
+                                    width={20}
+                                    color="#012D9C"
+                                    secondaryColor="#f3f3f3"
+                                    strokeWidth={5}
+                                    strokeWidthSecondary={5}
+                                /> : 
+                                <span>Yes</span>
+                            }
+                        </button>
+                        <button onClick={()=>{setrevOpen(false)}}>No</button>
                 </Modal>
                 <Modal //modal for ERROR!!!
                     name="errorModal"
