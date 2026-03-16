@@ -157,8 +157,13 @@ function Dashboard () {
         setdesData(`Reversal for ${Type}, Amout=${amount}`);
         setactiveType(Type);
         setactiveaccNo(accNo);
-        setdepAmount(-amount);
-        setmethod('Deposit');
+        if (amount<0){
+            setmethod('Deposit');
+            setdepAmount(-amount);
+        }else if(amount > 0){
+            setmethod('Withdraw');
+            setdepAmount(amount);
+        }
         setrevOpen(true);
     }
 
@@ -200,15 +205,20 @@ function Dashboard () {
     //transfer from one account to another
     const transferFunc = async()=>{
         try{
+            if(targetaccNo == null || transAmount <= 0){
+                showError('Invalid Entry');
+                settransModal(false)
+                return;
+            }
             const response = await axios.post(`${URL.baseURL}${URL.API_URL}/accounts/accTransfer`,{
                 accNumber : activeAccNo,
                 amount : transAmount,
                 userId : userId,
                 targetAccNo : targetaccNo
             });
+            if(response.data.Sucess==false){showError(response.data.message)}
             settransModal(false);
             checkAccounts()
-            alert(response.data.message);
         }catch(err){
             showError(err)
         }
@@ -228,7 +238,7 @@ function Dashboard () {
                                         amount={item.Value} 
                                         account={item.accNumber} 
                                         func={openModal}   
-                                        transfer={()=>{getseperateAccs(item.accType,item.accNumber)}} 
+                                        transfer={()=>{settransAmount(0);settargetaccNo(); getseperateAccs(item.accType,item.accNumber)}} 
                                     />
                                     {info.length < 2 ?
                                         <button onClick={()=>{setcreateOpen(true)}} style={{width:'10%',height:100}} ><FaPlus size={50} color='rgba(63, 63, 64, 0.46)' /></button> :
