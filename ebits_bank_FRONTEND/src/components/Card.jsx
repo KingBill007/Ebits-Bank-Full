@@ -3,6 +3,7 @@ import { LuPiggyBank } from "react-icons/lu";
 import styles from "../styles/card.module.css";
 import { PiHandDepositFill } from "react-icons/pi";
 import { PiHandWithdrawFill } from "react-icons/pi";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 
 function Card (props){
       function maskAccountNumber(accNumber) {
@@ -23,7 +24,10 @@ function Card (props){
             <button className={styles.bttnBlue} onClick={()=>{props.func('Deposit',props.type,'depositModal',props.account)}} ><PiHandDepositFill />Deposit</button>
             <button className={styles.bttnWhite} onClick={()=>{props.func('Withdraw',props.type,'depositModal',props.account)}}><PiHandWithdrawFill />Withdraw</button>
           </div>
-          <button className="blueBttn">{props.type}</button>
+          <div style={{display:'flex',flexDirection:'row',alignItems:'center',gap:10}}>
+            <button className="blueBttn">{props.type}</button>
+            <button style={{backgroundColor:'transparent',borderWidth:0,cursor:'pointer'}} onClick={props.transfer}><FaMoneyBillTransfer color="red" size={30} /></button>
+          </div>
         </div>
         <div className="accountCardRight"> 
           {props.type==='Current' ? <CiWallet size={100} color="rgba(62, 117, 255, 0.71)"/> : <LuPiggyBank size={92} color='rgba(62, 117, 255, 0.71)' />}

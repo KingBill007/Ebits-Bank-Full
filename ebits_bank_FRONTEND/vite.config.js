@@ -13,5 +13,8 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+     watch: { //Code for constant dev update to docker
+      usePolling: true
+    }
   }
 })

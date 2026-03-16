@@ -5,12 +5,17 @@ services:
     image: mongo:7
     container_name: ebits_mongo
     restart: always
+    ports:
+      - "27018:27017" 
     volumes:
       - mongo_data:/data/db
 
   backend:
     build: ./ebits_bank_BACKEND
     container_name: ebits_backend
+    volumes: #Code for constant update
+      - ./ebits_bank_BACKEND:/app #Code for constant update
+      - /app/node_modules #Code for constant update
     restart: always
     ports:
       - "3000:3000"
@@ -18,17 +23,23 @@ services:
       PORT: 3000
       CONNECTION_STRING: mongodb://mongo:27017/Ebits_Bank
       API_URL: /ebits/v1
+    command: npm run dev  # runs nodemon Code for constant update
     depends_on:
       - mongo
 
   frontend:
     build: ./ebits_bank_FRONTEND
     container_name: ebits_frontend
+    volumes: #Code for constant update
+      - ./ebits_bank_FRONTEND:/app #Code for constant update
+      - /app/node_modules #Code for constant update
+      
     restart: always
     ports:
       - "5173:5173"
     environment:
       API_URL: /ebits/v1
+      CHOKIDAR_USEPOLLING : true #Code for constant update
     depends_on:
       - backend
 volumes:

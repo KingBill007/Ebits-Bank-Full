@@ -18,12 +18,16 @@ import { IoArrowUndoCircleOutline } from "react-icons/io5";
 function Dashboard () {
 
     const [data, setdata] = useState([]);
+    const [otherAccs, setotherAccs] = useState();
     const [isLoading, setisLoading] = useState(false)
     const [method, setmethod] = useState('');
     const [totalBal, settotalBal] = useState(202.20);
     const [depAmount, setdepAmount] = useState(0);
+    const [transAmount, settransAmount] = useState(0);
+    const [transModal, settransModal] = useState(false)
     const [desData, setdesData] = useState("");
     const [activeAccNo, setactiveaccNo] = useState();
+    const [targetaccNo, settargetaccNo] = useState();
     const modalType = useRef('');
     const [activeType, setactiveType] = useState('');
     const [createType, setcreatType] = useState('Current');
@@ -103,7 +107,7 @@ function Dashboard () {
         checkAccounts()
     },[errorOpen])
 
-    //Opens Available Modals
+    //Opens Available Modals for deposit and withdraw
     const openModal = async (method,type,modalName,accNo)=>{
         modalType.current = type;
         setactiveType(modalType.current);
@@ -120,6 +124,10 @@ function Dashboard () {
             Amount = depAmount;
         } else if(method === 'Withdraw'){
             Amount = -depAmount;
+        } 
+        if (depAmount <= 0 || isNaN(depAmount)){
+            showError(`Your ${method} amount is invalid`)
+            return;
         }
         try{
             setisLoading(true)
@@ -175,6 +183,36 @@ function Dashboard () {
             showError(err)
         }
     }
+
+    //Get all account except current
+    const getseperateAccs=async (type, acNumber)=>{
+        try{
+            const response = await axios.get(`${URL.baseURL}${URL.API_URL}/accounts/getuserAccs/${userId}/${acNumber}`);
+            setotherAccs(response.data.message)
+        }catch(err){
+            showError(err)
+        }
+        setactiveaccNo(acNumber);
+        settransModal(true);
+        setmethod('Transfer');
+        setactiveType(type)
+    }
+    //transfer from one account to another
+    const transferFunc = async()=>{
+        try{
+            const response = await axios.post(`${URL.baseURL}${URL.API_URL}/accounts/accTransfer`,{
+                accNumber : activeAccNo,
+                amount : transAmount,
+                userId : userId,
+                targetAccNo : targetaccNo
+            });
+            settransModal(false);
+            checkAccounts()
+            alert(response.data.message);
+        }catch(err){
+            showError(err)
+        }
+    }
     
     return (
         <div className='screen'>
@@ -189,7 +227,8 @@ function Dashboard () {
                                         type={item.accType} 
                                         amount={item.Value} 
                                         account={item.accNumber} 
-                                        func={openModal}    
+                                        func={openModal}   
+                                        transfer={()=>{getseperateAccs(item.accType,item.accNumber)}} 
                                     />
                                     {info.length < 2 ?
                                         <button onClick={()=>{setcreateOpen(true)}} style={{width:'10%',height:100}} ><FaPlus size={50} color='rgba(63, 63, 64, 0.46)' /></button> :
@@ -221,6 +260,7 @@ function Dashboard () {
                                     <th>date</th>
                                     <th>description</th>
                                     <th>account</th>
+                                    <th>balance</th>
                                     <th>ammount</th>
                                 </tr>
                             </thead>
@@ -240,6 +280,7 @@ function Dashboard () {
                                     })()}</td>
                                     <td>{info.description}</td>
                                     <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accType}</td>
+                                    <td style={{color:'rgb(3, 154, 13)'}}>{info.balance}</td>
                                     <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accType,info.accNumber)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
                                 </tr>
                                 )}
@@ -260,6 +301,47 @@ function Dashboard () {
                         <input type='number' min='0' step={.01} placeholder='Gh₵ (2 decimal place)' onChange={(val)=>setdepAmount(Number(val.target.value))} />
                         <textarea onChange={(val)=>setdesData(val.target.value)}></textarea>
                         <button onClick={depositFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                            {isLoading ?
+                                <Oval
+                                    height={20}
+                                    width={20}
+                                    color="#012D9C"
+                                    secondaryColor="#f3f3f3"
+                                    strokeWidth={5}
+                                    strokeWidthSecondary={5}
+                                /> : 
+                                method
+                            }
+                        </button>
+                </Modal>
+                <Modal //modal for transfer btw Accounts
+                    name="transferModal"
+                    isOpen={transModal} 
+                    onRequestClose={() => settransModal(false)} 
+                    className={styles.modalContent} 
+                    overlayClassName={styles.modalOverlay} 
+                >
+                        <h2>Transfer from {activeType} Account</h2>
+                        {otherAccs ? otherAccs.map((info)=>
+                            <button 
+                            key={info._id}
+                            style={{
+                            width: 280, height: 40, borderRadius:5, cursor:'pointer', borderWidth:info.accNumber==targetaccNo ? 3 : 0, display:'flex', flexDirection:'row',
+                            backgroundColor:'rgba(2, 48, 255, 0.47)', marginBottom: 10,justifyContent:'space-between', alignItems:'center',
+                            borderColor:info.accNumber==targetaccNo ? 'orange' : 'white'
+                            }}
+                                onClick={()=>{info.accNumber!==targetaccNo ? settargetaccNo(info.accNumber) : settargetaccNo();}}
+                            >
+                                <div><span>{info.accNumber}</span></div>
+                                <div style={{
+                                    padding:5, backgroundColor:'rgba(255, 0, 0, 0.72)', borderRadius:5
+                                }}><span style={{color:'white'}}>Gh¢ {info.Value}</span></div>
+                        </button>
+                        ) : ''}
+
+                        <input type='number' min='0' step={.01} placeholder='Gh₵ (2 decimal place)' onChange={(val)=>settransAmount(Number(val.target.value))} />
+                        
+                        <button onClick={transferFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
                             {isLoading ?
                                 <Oval
                                     height={20}
