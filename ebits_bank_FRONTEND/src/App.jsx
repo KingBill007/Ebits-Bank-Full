@@ -3,7 +3,9 @@ import React from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-import Signup from './pages/Signup'
+import Signup from './pages/Signup';
+import Admin from './pages/Admin';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Modal from "react-modal";
 
@@ -19,6 +21,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </Router>
     </div>

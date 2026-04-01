@@ -200,6 +200,7 @@ html, body, #root {
     border-radius: 10px;
     height: 700px;
     overflow: hidden;
+    padding-bottom: 20px;
 }
 .upperBttm{
     display: flex;
