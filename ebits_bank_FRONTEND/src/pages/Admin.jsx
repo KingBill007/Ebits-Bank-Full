@@ -5,8 +5,8 @@ import '../styles/main.css';
 
 const DEFAULT_TIERS = [
   { id: 1, min: 1000, max: null, commission: 2, label: "Above 1,000" },
-  { id: 2, min: 500, max: 999.99, commission: 1, label: "500 – 999.99" },
-  { id: 3, min: 300, max: 499.99, commission: 0.5, label: "300 – 499.99" },
+  { id: 2, min: 500, max: 999.99, commission: 1, label: "500 - 999.99" },
+  { id: 3, min: 300, max: 499.99, commission: 0.5, label: "300 - 499.99" },
   { id: 4, min: 0, max: 299.99, commission: 0, label: "Below 300" },
 ];
 
@@ -84,19 +84,20 @@ function Badge({ children, color }) {
   );
 }
 
-function TierRow({ tier, onChange }) {
+function TierRow({ label,value,target, onChange}) {
   return (
-    <div style={{
+    <div 
+    style={{
       display: "grid", gridTemplateColumns: "1fr 1fr 80px",
       gap: 10, alignItems: "center", padding: "10px 14px",
       background: "#f5f9ff", borderRadius: 10, marginBottom: 8
     }}>
-      <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{tier.label}</span>
+      <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
-          type="number" min={0} max={100} step={0.5}
-          value={tier.commission}
-          onChange={(e) => onChange({ ...tier, commission: parseFloat(e.target.value) || 0 })}
+          type="number" min={0} step={0.5} //max={100} 
+          value={value}
+           onChange={(e) => onChange( target , parseFloat(e.target.value) || 0 )}
           style={{
             width: "100%", padding: "6px 10px", borderRadius: 8,
             border: "1.5px solid #c7ddf5", fontSize: 14,
@@ -105,8 +106,8 @@ function TierRow({ tier, onChange }) {
         />
         <span style={{ fontSize: 13, color: "#7a9cbf", whiteSpace: "nowrap" }}>%</span>
       </div>
-      <Badge color={tier.commission === 0 ? "#22c55e" : "#3b82f6"}>
-        {tier.commission === 0 ? "Free" : `${tier.commission}%`}
+      <Badge color={value === 0 ? "#22c55e" : "#3b82f6"}>
+        {value === 0 ? "Free" : `${value}%`}
       </Badge>
     </div>
   );
@@ -162,7 +163,7 @@ function AccountCard({ account, onEdit, onDelete }) {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button
-            onClick={() => onEdit(account)}
+            onClick={() => {onEdit(account);console.log(account);}}
             style={{
               background: "#f0f6ff", border: "1.5px solid #c7ddf5",
               borderRadius: 9, padding: "7px 14px", cursor: "pointer",
@@ -225,23 +226,23 @@ function AccountCard({ account, onEdit, onDelete }) {
 function AccountFormModal({ account, onSave, onClose }) {
   const [form, setForm] = useState(
     account
-      ? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
-      : {
-          id: Date.now(),
-          Name: "",
-          icon: "🏦",
-          color: "#3b82f6",
-          minWithdrawal: 20,
-          tiers: DEFAULT_TIERS.map(t => ({ ...t })),
-        }
-
+      // ? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
+      // : {
+      //     id: Date.now(),
+      //     Name: "",
+      //     icon: "🏦",
+      //     color: "#3b82f6",
+      //     minWithdrawal: 20,
+      //     tiers: DEFAULT_TIERS.map(t => ({ ...t })),
+      //   }
   );
-
-  const handleTierChange = (updated) => {
-    setForm(f => ({
-      ...f,
-      tiers: f.tiers.map(t => (t.id === updated.id ? updated : t))
-    }));
+  
+  //chnages the values of the form on text change
+  const handleTierChange = async (target,value) => {
+     setForm(f => ({
+       ...f,
+       [target]: value
+     }));
   };
 
   const isValid = form.Name.trim() && form.minWithdrawal >= 0;
@@ -279,9 +280,13 @@ function AccountFormModal({ account, onSave, onClose }) {
           <label style={{ ...labelStyle, marginBottom: 10, display: "block" }}>
             Withdrawal Commission Tiers
           </label>
-          {form.tiers.map(t => (
+          {/* {form.tiers.map(t => (
             <TierRow key={t.id} tier={t} onChange={handleTierChange} />
-          ))}
+          ))} */}
+          <TierRow label={'Below 300'} value={form.below300} onChange={handleTierChange} target={'below300'}/>
+          <TierRow label={'300 - 499.99'} value={form.from300to499} onChange={handleTierChange} target={'from300to499'} />
+          <TierRow label={'500 - 999.99'} value={form.from500to999} onChange={handleTierChange} target={'from500to999'} />
+          <TierRow label={'Above 100'} value={form.above1000} onChange={handleTierChange} target={'above1000'} />
         </div>
 
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
@@ -395,6 +400,7 @@ export default function Admin() {
   const handleEdit = (account) => {
     setEditAccount(account);
     setShowForm(true);
+    
   };
   const getallacctypes=async()=>{
     try{
