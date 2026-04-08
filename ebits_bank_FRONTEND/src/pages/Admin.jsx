@@ -95,7 +95,7 @@ function TierRow({ label,value,target, onChange}) {
       <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
-          type="number" min={0} step={0.5} //max={100} 
+          type="number" min={0} step={0.5} max={100} 
           value={value}
            onChange={(e) => onChange( target , parseFloat(e.target.value) || 0 )}
           style={{
@@ -174,7 +174,7 @@ function AccountCard({ account, onEdit, onDelete }) {
             onMouseLeave={e => { e.target.style.background = "#f0f6ff"; }}
           >Edit</button>
           <button
-            onClick={() => onDelete(account.id)}
+            onClick={() => onDelete(account._id)}
             style={{
               background: "#fff5f5", border: "1.5px solid #fdc5c5",
               borderRadius: 9, padding: "7px 14px", cursor: "pointer",
@@ -226,15 +226,20 @@ function AccountCard({ account, onEdit, onDelete }) {
 function AccountFormModal({ account, onSave, onClose }) {
   const [form, setForm] = useState(
     account
-      // ? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
-      // : {
-      //     id: Date.now(),
-      //     Name: "",
-      //     icon: "🏦",
-      //     color: "#3b82f6",
-      //     minWithdrawal: 20,
-      //     tiers: DEFAULT_TIERS.map(t => ({ ...t })),
-      //   }
+      //? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
+      ? account
+      : {
+          //id: Date.now(),
+          Name: "",
+          //icon: "🏦",
+          color: "#3b82f6",
+          minWithdrawal: 20,
+          //tiers: DEFAULT_TIERS.map(t => ({ ...t })),
+          below300:0,
+          from300to499:0.5,
+          from500to999:1,
+          above1000:2
+        }
   );
   
   //chnages the values of the form on text change
@@ -246,6 +251,7 @@ function AccountFormModal({ account, onSave, onClose }) {
   };
 
   const isValid = form.Name.trim() && form.minWithdrawal >= 0;
+ 
 
   return (
     <Modal title={account ? `Edit — ${account.Name}` : "Add New Account Type"} onClose={onClose}>
@@ -353,6 +359,7 @@ export default function Admin() {
   const [deleteId, setDeleteId] = useState(null);
   const [toast, setToast] = useState(null);
   const [allaccounts, setallaccounts] = useState();
+  const [activeId, setactiveId] = useState();
 
 
   
@@ -371,42 +378,63 @@ export default function Admin() {
   };
   const handleSave = async(form) => {
     if (editAccount) {
-      setAccounts(a => a.map(ac => ac.id === form.id ? form : ac));
-      showToast("Account updated successfully.");
-    } else {
-      setAccounts(a => [...a, form]);
+      //setAccounts(a => a.map(ac => ac.id === form.id ? form : ac));
       try{
         const payload = {
         Name: form.Name,
         minWithdrawal: form.minWithdrawal,
-        above1000:     form.tiers.find(t => t.id === 1)?.commission ?? 0,
-        from500to999:  form.tiers.find(t => t.id === 2)?.commission ?? 0,
-        from300to499:  form.tiers.find(t => t.id === 3)?.commission ?? 0,
-        below300:      form.tiers.find(t => t.id === 4)?.commission ?? 0,
+        above1000:     form.above1000,
+        from500to999:  form.from500to999,
+        from300to499:  form.from300to499,
+        below300:      form.below300,
+        id: form._id,
+      };
+
+      const editacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/edittype`,payload);
+
+      if(editacc.data.Sucess==true){ showToast('Account sucessfuly Updated'); getallacctypes() }
+      else if(editacc.data.Sucess==false){ showToast(`Account could not be sucessfuly edited: ${editacc.data.message}`,"error")}
+
+      }catch(err){showToast(err.message,'error')}
+    } else {
+      //setAccounts(a => [...a, form]);
+      try{
+        const payload = {
+        Name: form.Name,
+        minWithdrawal: form.minWithdrawal,
+        above1000:     form.above1000,//tiers.find(t => t.id === 1)?.commission ?? 0,
+        from500to999:  form.from500to999,//tiers.find(t => t.id === 2)?.commission ?? 0,
+        from300to499:  form.from300to499,//tiers.find(t => t.id === 3)?.commission ?? 0,
+        below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
       };
         const addacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/addnew`,payload);
         console.log(addacc.data)
         showToast("Account created successfully.");
+        getallacctypes()
       }catch(err){showError(err)}
     }
     setShowForm(false);
     setEditAccount(null);
   };
-  const handleDelete = (id) => {
-    setAccounts(a => a.filter(ac => ac.id !== id));
+  const handleDelete = async (id) => {
+    setAccounts(a => a.filter(ac => ac.id !== id)); 
+    try{
+      const response = await axios.delete(`${URL.baseURL}${URL.API_URL}/accountType/deletetype/${deleteId}`);
+      showToast('Sucessfully deleted account')
+      getallacctypes()
+    }catch(err){showToast(err)}
     setDeleteId(null);
     showToast("Account type deleted.", "error");
   };
   const handleEdit = (account) => {
     setEditAccount(account);
     setShowForm(true);
-    
   };
   const getallacctypes=async()=>{
     try{
       const response = await axios.get(`${URL.baseURL}${URL.API_URL}/accountType`);
       setallaccounts(response.data.message)
-      console.log(response.data.message);
+      //console.log(response.data.message);
     }catch(err){showError(err)}
   }
   useEffect(()=>{
