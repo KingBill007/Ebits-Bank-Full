@@ -1,7 +1,6 @@
 import React from 'react';
 import '../styles/main.css';
 import Card from '../components/Card';
-//import data from '../data/Data';
 import { useState , useEffect , useRef } from 'react';
 import Header from '../components/Header';
 import axios from 'axios';
@@ -30,7 +29,9 @@ function Dashboard () {
     const [targetaccNo, settargetaccNo] = useState();
     const modalType = useRef('');
     const [activeType, setactiveType] = useState('');
-    const [createType, setcreatType] = useState('Current');
+    const [activeTypeId, setactiveTypeId] = useState();
+    const [accountTypes, setaccountTypes] = useState();
+    const [createType, setcreateType] = useState();//work on this
     const [depOpen,setdepOpen] = useState(false)
     const [revOpen,setrevOpen] = useState(false)
     const [createOpen,setcreateOpen] = useState(false)
@@ -54,6 +55,16 @@ function Dashboard () {
         navigate('/'+location);
     }
 
+    //get all account types
+    const getacctypes =async ()=>{
+        try{
+            const types = await axios.get(`${URL.baseURL}${URL.API_URL}/accountType`);
+            const refined = types.data.message;
+            setaccountTypes(refined);
+            setcreateType(refined[0]._id);
+            console.log(refined)
+        }catch(err){showError(err.message)}
+    }
     //Check if userId has accounts and save accounts
     const checkAccounts = async () =>{
         try{
@@ -104,15 +115,17 @@ function Dashboard () {
         }
     }
     useEffect(()=>{
-        checkAccounts()
+        checkAccounts();
+        getacctypes();
     },[errorOpen])
 
     //Opens Available Modals for deposit and withdraw
-    const openModal = async (method,type,modalName,accNo)=>{
+    const openModal = async (method,type,modalName,accNo,typeId)=>{
         modalType.current = type;
         setactiveType(modalType.current);
         setmethod(method);
         setactiveaccNo(accNo)
+        setactiveTypeId(typeId);
         if ( modalName === 'depositModal' ){setdepOpen(true);}
         if ( modalName === 'createAccountModal' ){setcreateOpen(true);}
     }
@@ -134,7 +147,7 @@ function Dashboard () {
             //send deposit to server
             const response = await axios.post(`${URL.baseURL}${URL.API_URL}/accounts/deposit`,{
                 accNumber: activeAccNo,
-                accType: activeType,
+                accTypeId: activeTypeId,
                 amount: Number(Math.floor(Amount * 100) / 100),
                 description: desData,
                 userId: userId
@@ -153,9 +166,10 @@ function Dashboard () {
     }
 
     //Reverse 
-    const reverseFunc = async (amount,Type,accNo)=>{
+    const reverseFunc = async (amount,Type,accNo,typeId)=>{
         setdesData(`Reversal for ${Type}, Amout=${amount}`);
         setactiveType(Type);
+        setactiveTypeId(typeId)
         setactiveaccNo(accNo);
         if (amount<0){
             setmethod('Deposit');
@@ -177,7 +191,7 @@ function Dashboard () {
                     userId: userId
                 }
             );
-            //console.log(createType)
+            console.log(createType)
             checkAccounts();
             setcreateOpen(false)
             if (!response.data.Sucess){
@@ -226,7 +240,7 @@ function Dashboard () {
     
     return (
         <div className='screen'>
-            <Header total={totalBal}/>
+            <Header total={totalBal} add={()=>{setcreateOpen(true)}}/>
             <div className='content'>
                 <div className='topContent'>
                     { hasAccount ? 
@@ -234,7 +248,8 @@ function Dashboard () {
                             info.map((item,index)=>
                                 <React.Fragment key={item._id}>
                                     <Card
-                                        type={item.accType} 
+                                        type={item.accTypeId.Name} 
+                                        typeId={item.accTypeId}
                                         amount={item.Value} 
                                         account={item.accNumber} 
                                         func={openModal}   
@@ -259,8 +274,12 @@ function Dashboard () {
                         <span style={{fontSize:19, fontWeight:'bold'}}>Transaction History</span>
                         <select value={selectVal} onChange={(val)=>setselectVal(val.target.value)}>
                             <option value="All">All Accounts</option>
-                            <option value="Current">Current Account</option>
-                            <option value="Savings">Savings Account</option>
+                            {/* <option value="Current">Current Account</option>
+                            <option value="Savings">Savings Account</option> */}
+                            { accountTypes ? 
+                                accountTypes.map((item)=>
+                                    <option key={item._id} value={item.Name}>{item.Name}</option>
+                                ) :"There are no account types"} 
                         </select>
                     </div>
                     <div className='lowerBttm'>
@@ -275,7 +294,7 @@ function Dashboard () {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.filter(item => selectVal==='All' || item.accType=== selectVal).map((info)=>
+                                {data.filter(item => selectVal==='All' || item.accTypeId.Name=== selectVal).map((info)=>
                                 <tr key={info._id} style={{position:'relative'}}>
                                     <td>{(()=>{
                                         //Date function
@@ -289,9 +308,9 @@ function Dashboard () {
                                         return dateRefined;
                                     })()}</td>
                                     <td>{info.description}</td>
-                                    <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accType}</td>
+                                    <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accTypeId.Name}</td>
                                     <td style={{color:'rgb(3, 154, 13)'}}>{info.balance}</td>
-                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accType,info.accNumber)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
+                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
                                 </tr>
                                 )}
                             </tbody>
@@ -374,9 +393,13 @@ function Dashboard () {
                 >
                         <h2>Create Account</h2>
                         <div style={{display:'flex',width:'100%',justifyContent:'space-around'}}>
-                            <select value={createType} onChange={(val)=>setcreatType(val.target.value)}>
-                                <option value="Current">Current Account</option>
-                                <option value="Savings">Savings Account</option>
+                            <select value={createType} onChange={(val)=>{setcreateType(val.target.value);console.log(val.target.value)}}>
+                                {/* <option value="Current">Current Account</option>
+                                <option value="Savings">Savings Account</option> */}
+                                { accountTypes ? 
+                                accountTypes.map((item)=>
+                                    <option key={item._id} value={item._id}>{item.Name}</option>
+                                ) :"There are no account types"} 
                             </select>   
                             <button onClick={createAccount}>Create account</button>
                         </div>

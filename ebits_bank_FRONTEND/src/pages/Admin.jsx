@@ -362,15 +362,6 @@ export default function Admin() {
   const [activeId, setactiveId] = useState();
 
 
-  
-
-  //ERROR display function
-  const [errorOpen, seterrorOpen] = useState(false);
-  const [errorMsg,seterrorMsg] = useState('Error');
-  const showError = (message)=>{
-      seterrorMsg("Error: "+message);
-      seterrorOpen(true);
-  }
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -408,8 +399,9 @@ export default function Admin() {
         below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
       };
         const addacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/addnew`,payload);
-        console.log(addacc.data)
-        showToast("Account created successfully.");
+        //console.log(addacc.data)
+        if (addacc.data.Sucess){showToast("Account created successfully.");}
+        else if (!addacc.data.Sucess){showToast(`Error: ${addacc.data.message}`,'error')}
         getallacctypes()
       }catch(err){showError(err)}
     }
@@ -625,16 +617,6 @@ export default function Admin() {
           {toast.msg}
         </div>
       )}
-      {/* <Modal //modal for ERROR!!!
-          name="errorModal"
-          isOpen={errorOpen} 
-          onRequestClose={() => seterrorOpen(false)} 
-          className='errorContent' 
-          overlayClassName='errorOverlay'
-          closeTimeoutMS={300}   // wait 300ms before unmounting
-      >
-          {errorMsg}
-      </Modal> */}
     </div>
   );
 }

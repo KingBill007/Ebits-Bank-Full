@@ -21,8 +21,8 @@ function Card (props){
           <span style={{ fontSize: 28, fontWeight: "bold", color:'rgba(1, 45, 156, 1)' }}>{props.amount.toFixed(2)}</span>
           <span style={{ fontSize: 13 }}>Account {maskAccountNumber(props.account)}</span>
           <div className={styles.btnBox}>
-            <button className={styles.bttnBlue} onClick={()=>{props.func('Deposit',props.type,'depositModal',props.account)}} ><PiHandDepositFill />Deposit</button>
-            <button className={styles.bttnWhite} onClick={()=>{props.func('Withdraw',props.type,'depositModal',props.account)}}><PiHandWithdrawFill />Withdraw</button>
+            <button className={styles.bttnBlue} onClick={()=>{props.func('Deposit',props.type,'depositModal',props.account,props.typeId)}} ><PiHandDepositFill />Deposit</button>
+            <button className={styles.bttnWhite} onClick={()=>{props.func('Withdraw',props.type,'depositModal',props.account,props.typeId)}}><PiHandWithdrawFill />Withdraw</button>
           </div>
           <div style={{display:'flex',flexDirection:'row',alignItems:'center',gap:10}}>
             <button className="blueBttn">{props.type}</button>
@@ -30,7 +30,8 @@ function Card (props){
           </div>
         </div>
         <div className="accountCardRight"> 
-          {props.type==='Current' ? <CiWallet size={100} color="rgba(62, 117, 255, 0.71)"/> : <LuPiggyBank size={92} color='rgba(62, 117, 255, 0.71)' />}
+          <CiWallet size={100} color="rgba(62, 117, 255, 0.71)"/>
+          {/* {props.type==='Current' ? <CiWallet size={100} color="rgba(62, 117, 255, 0.71)"/> : <LuPiggyBank size={92} color='rgba(62, 117, 255, 0.71)' />} */}
         </div>
       </div>
     );

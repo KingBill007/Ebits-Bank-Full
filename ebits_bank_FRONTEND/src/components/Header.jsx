@@ -4,7 +4,7 @@ import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import styles from '../styles/dashboard.module.css'
-import { useState } from "react";
+
 
 function Header (props) {
 
@@ -44,6 +44,10 @@ function Header (props) {
                         <span style={{fontSize:20,fontWeight:'bold',fontFamily:'sans-serif'}}>Ebits Bank</span>
                         <span style={{fontFamily:'sans-serif',fontSize:14}}>Online Banking</span>
                     </div>
+                        <button onClick={props.add} style={{
+                            backgroundColor: 'rgb(0, 176, 21)', width: 140, border: 'none', height:40, borderRadius: 10,color: 'white',
+                            fontSize: 16, cursor: 'pointer'
+                        }}>Create Account</button>
                 </div>
 
                 <div className='rightHeader'>
