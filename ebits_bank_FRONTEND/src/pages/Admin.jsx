@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import {URL} from '../data/URL';
 import '../styles/main.css';
+import { FaTrashAlt } from "react-icons/fa";
+import { IoIosAddCircle } from "react-icons/io";
 
 const DEFAULT_TIERS = [
   { id: 1, min: 1000, max: null, commission: 2, label: "Above 1,000" },
@@ -37,6 +39,12 @@ const INITIAL_ACCOUNTS = [
   },
 ];
 
+const TIERS = [
+  {min:0, max:250, percentage:1},
+  {min:256, max:450, percentage:2},
+  {min:456, max:650, percentage:3},
+  {min:656, max:null, percentage:2}
+]
 
 
 function Modal({ title, onClose, children }) {
@@ -84,15 +92,15 @@ function Badge({ children, color }) {
   );
 }
 
-function TierRow({ label,value,target, onChange}) {
+function TierRow({ index, min, max, percent,removetier }) {
   return (
     <div 
     style={{
-      display: "grid", gridTemplateColumns: "1fr 1fr 80px",
+      display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1fr 80px",
       gap: 10, alignItems: "center", padding: "10px 14px",
       background: "#f5f9ff", borderRadius: 10, marginBottom: 8
     }}>
-      <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{label}</span>
+      {/* <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{label}</span>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input
           type="number" min={0} step={0.5} max={100} 
@@ -108,7 +116,42 @@ function TierRow({ label,value,target, onChange}) {
       </div>
       <Badge color={value === 0 ? "#22c55e" : "#3b82f6"}>
         {value === 0 ? "Free" : `${value}%`}
-      </Badge>
+      </Badge> */}
+      <p>{String(index+1).padStart(2, '0')}</p>
+      <input 
+        type="number" min={0} step={0.5} value={min}
+        style={{
+          width: 90, padding: "6px 10px", borderRadius: 8,
+          border: "1.5px solid #c7ddf5", fontSize: 14,
+          color: "#1a3a5c", outline: "none", background: "#fff"
+        }}
+      />
+      <p>to</p>
+      <input 
+        type="number" min={0} step={0.5} value={max}
+        style={{
+          width: 90, padding: "6px 10px", borderRadius: 8,
+          border: "1.5px solid #c7ddf5", fontSize: 14,
+          color: "#1a3a5c", outline: "none", background: "#fff"
+        }}
+        placeholder="No limit"
+      />
+      <input 
+        type="number" min={0} max={100} step={0.1} value={percent}
+        style={{
+          width: 70, padding: "6px 10px", borderRadius: 8,
+          border: "1.5px solid #c7ddf5", fontSize: 14,
+          color: "#1a3a5c", outline: "none", background: "#fff"
+        }}
+      />
+      <span>%</span>
+      <button style={{
+        width:35, height:30, backgroundColor:'transparent', border:'none', cursor:"pointer"
+      }}
+      onClick={()=>{removetier()}}
+      >
+        <FaTrashAlt color="red"  /> 
+      </button>
     </div>
   );
 }
@@ -224,6 +267,7 @@ function AccountCard({ account, onEdit, onDelete }) {
 }
 
 function AccountFormModal({ account, onSave, onClose }) {
+  const [Tiers, setTiers] = useState(TIERS)
   const [form, setForm] = useState(
     account
       //? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
@@ -241,7 +285,18 @@ function AccountFormModal({ account, onSave, onClose }) {
           above1000:2
         }
   );
-  
+
+  //add new tier row
+  const addTierRow = ()=>{
+    const dummy = {min:0, max:0, percentage:0}
+    setTiers(prev => [...prev, dummy])
+  }
+  //remove tier row
+  const removeTierRow = (indexToRemove)=>{
+    console.log('Tiers', Tiers)
+    setTiers(prev => prev.filter((_, index) => index !== indexToRemove))
+  }
+
   //chnages the values of the form on text change
   const handleTierChange = async (target,value) => {
      setForm(f => ({
@@ -283,16 +338,27 @@ function AccountFormModal({ account, onSave, onClose }) {
 
         {/* Commission Tiers */}
         <div>
-          <label style={{ ...labelStyle, marginBottom: 10, display: "block" }}>
-            Withdrawal Commission Tiers
-          </label>
+          <div style={{
+            display:'flex', justifyContent:'space-between',alignItems:'center'
+          }}>
+            <label style={{ ...labelStyle,marginBottom: 0 }}>
+              Withdrawal Commission Tiers
+            </label>
+            <button
+              style={{
+              background: "#f0fff2", border: "1.5px solid #c7f5d2",
+              borderRadius: 9, padding: "7px 14px", cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: "#3b73f6",
+              transition: "all .15s", alignContent:'center', justifyContent:'center',display:'flex'
+              }}
+            onClick={addTierRow}><IoIosAddCircle size={15}/> Add tier</button>
+          </div>
           {/* {form.tiers.map(t => (
             <TierRow key={t.id} tier={t} onChange={handleTierChange} />
           ))} */}
-          <TierRow label={'Below 300'} value={form.below300} onChange={handleTierChange} target={'below300'}/>
-          <TierRow label={'300 - 499.99'} value={form.from300to499} onChange={handleTierChange} target={'from300to499'} />
-          <TierRow label={'500 - 999.99'} value={form.from500to999} onChange={handleTierChange} target={'from500to999'} />
-          <TierRow label={'Above 100'} value={form.above1000} onChange={handleTierChange} target={'above1000'} />
+          {Tiers && Tiers.map((tier,index)=>
+            <TierRow key={index} min={tier.min} max={tier.max} percent={tier.percentage} index={index} removetier={()=>removeTierRow(index)} onChange={handleTierChange} target={'below300'}/>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
