@@ -39,13 +39,6 @@ const INITIAL_ACCOUNTS = [
   },
 ];
 
-const TIERS = [
-  {min:0, max:250, percentage:1},
-  {min:256, max:450, percentage:2},
-  {min:456, max:650, percentage:3},
-  {min:656, max:null, percentage:2}
-]
-
 
 function Modal({ title, onClose, children }) {
   return (
@@ -92,7 +85,7 @@ function Badge({ children, color }) {
   );
 }
 
-function TierRow({ index, min, max, percent,removetier }) {
+function TierRow({ index, min, max, percent, removetier, onChange }) {
   return (
     <div 
     style={{
@@ -119,7 +112,7 @@ function TierRow({ index, min, max, percent,removetier }) {
       </Badge> */}
       <p>{String(index+1).padStart(2, '0')}</p>
       <input 
-        type="number" min={0} step={0.5} value={min}
+        type="number" min={0} step={0.5} value={min} onChange={(e) => onChange(e.target.value,index,"min")}
         style={{
           width: 90, padding: "6px 10px", borderRadius: 8,
           border: "1.5px solid #c7ddf5", fontSize: 14,
@@ -128,7 +121,7 @@ function TierRow({ index, min, max, percent,removetier }) {
       />
       <p>to</p>
       <input 
-        type="number" min={0} step={0.5} value={max}
+        type="number" min={0} step={0.5} value={max} onChange={(e) => onChange(e.target.value,index,"max")}
         style={{
           width: 90, padding: "6px 10px", borderRadius: 8,
           border: "1.5px solid #c7ddf5", fontSize: 14,
@@ -137,7 +130,7 @@ function TierRow({ index, min, max, percent,removetier }) {
         placeholder="No limit"
       />
       <input 
-        type="number" min={0} max={100} step={0.1} value={percent}
+        type="number" min={0} max={100} step={0.1} value={percent} onChange={(e) => onChange(e.target.value,index,"percentage")}
         style={{
           width: 70, padding: "6px 10px", borderRadius: 8,
           border: "1.5px solid #c7ddf5", fontSize: 14,
@@ -243,7 +236,7 @@ function AccountCard({ account, onEdit, onDelete }) {
         <div style={{ background: "#f5f9ff", borderRadius: 11, padding: "12px 14px" }}>
           <div style={{ fontSize: 11, color: "#7a9cbf", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 4 }}>Commission Tiers</div>
           <div style={{ fontSize: 20, fontWeight: 700, color: "#1a3a5c" }}>
-            {control.length} tiers
+            {account.tiers.length} tiers
           </div>
         </div>
       </div>
@@ -266,8 +259,15 @@ function AccountCard({ account, onEdit, onDelete }) {
   );
 }
 
+
+const TIERS = [
+  {min:0, max:299.9, percentage:0},
+  {min:300, max:499.9, percentage:0.5},
+  {min:500, max:999.9, percentage:1},
+  {min:1000, max:null, percentage:2}
+]
 function AccountFormModal({ account, onSave, onClose }) {
-  const [Tiers, setTiers] = useState(TIERS)
+  const [Tiers, setTiers] = useState(account ? account.tiers : TIERS)
   const [form, setForm] = useState(
     account
       //? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
@@ -293,16 +293,19 @@ function AccountFormModal({ account, onSave, onClose }) {
   }
   //remove tier row
   const removeTierRow = (indexToRemove)=>{
-    console.log('Tiers', Tiers)
+    //console.log('Tiers', Tiers)
     setTiers(prev => prev.filter((_, index) => index !== indexToRemove))
   }
 
   //chnages the values of the form on text change
-  const handleTierChange = async (target,value) => {
-     setForm(f => ({
-       ...f,
-       [target]: value
-     }));
+  const handleTierChange = async (value,index,place) => {
+    setTiers(prevTiers => 
+      prevTiers.map((tier, i) => 
+        i === index 
+          ? { ...tier, [place]: value } // Update the specific property in the object
+          : tier // Keep the rest as they are
+      )
+    );
   };
 
   const isValid = form.Name.trim() && form.minWithdrawal >= 0;
@@ -364,7 +367,7 @@ function AccountFormModal({ account, onSave, onClose }) {
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
           <button onClick={onClose} style={secondaryBtnStyle}>Cancel</button>
           <button
-            onClick={() => isValid && onSave(form)}
+            onClick={() => isValid && onSave(form,Tiers)}
             disabled={!isValid}
             style={{
               ...primaryBtnStyle,
@@ -433,19 +436,21 @@ export default function Admin() {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
-  const handleSave = async(form) => {
+  const handleSave = async(form,tiers) => {
+    //console.log('tires',tiers)
+      const payload = {
+        Name: form.Name,
+        minWithdrawal: form.minWithdrawal,
+        above1000:     form.above1000,//tiers.find(t => t.id === 1)?.commission ?? 0,
+        from500to999:  form.from500to999,//tiers.find(t => t.id === 2)?.commission ?? 0,
+        from300to499:  form.from300to499,//tiers.find(t => t.id === 3)?.commission ?? 0,
+        below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
+        tiers: tiers
+      };
     if (editAccount) {
       //setAccounts(a => a.map(ac => ac.id === form.id ? form : ac));
       try{
-        const payload = {
-        Name: form.Name,
-        minWithdrawal: form.minWithdrawal,
-        above1000:     form.above1000,
-        from500to999:  form.from500to999,
-        from300to499:  form.from300to499,
-        below300:      form.below300,
-        id: form._id,
-      };
+      payload.id=  form._id;
 
       const editacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/edittype`,payload);
 
@@ -456,14 +461,7 @@ export default function Admin() {
     } else {
       //setAccounts(a => [...a, form]);
       try{
-        const payload = {
-        Name: form.Name,
-        minWithdrawal: form.minWithdrawal,
-        above1000:     form.above1000,//tiers.find(t => t.id === 1)?.commission ?? 0,
-        from500to999:  form.from500to999,//tiers.find(t => t.id === 2)?.commission ?? 0,
-        from300to499:  form.from300to499,//tiers.find(t => t.id === 3)?.commission ?? 0,
-        below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
-      };
+        
         const addacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/addnew`,payload);
         //console.log(addacc.data)
         if (addacc.data.Sucess){showToast("Account created successfully.");}

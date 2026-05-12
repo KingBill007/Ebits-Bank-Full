@@ -199,7 +199,7 @@ html, body, #root {
 .bottomContent {
     border: 1px solid #ccc;
     border-radius: 10px;
-    height: 700px;
+    height: auto;
     overflow: hidden;
     padding-bottom: 20px;
 }

@@ -62,7 +62,7 @@ function Dashboard () {
             const refined = types.data.message;
             setaccountTypes(refined);
             setcreateType(refined[0]._id);
-            console.log(refined)
+            //console.log('all account types: ',refined)
         }catch(err){showError(err.message)}
     }
     //Check if userId has accounts and save accounts
@@ -85,14 +85,15 @@ function Dashboard () {
             
             //get user accounts
             const response = await axios.get(`${URL.baseURL}${URL.API_URL}/accounts/checkAcc/${userId}`);
-            //console.log(response)
+            //console.log('User Accounts: ', response.data)
             if (response.data && response.data.length > 0){
                 sethasAccount(true)
                 setInfo(response.data)
-                //console.log(response.data)
+                //console.log('Account types:',response.data)
             }else{
                 sethasAccount(false);
                 setInfo([])
+                //console.log('User Has no Accounts')
             }
             //filter the sum of user accounts
             const totalValue = response.data.filter(acc => acc.userId._id === userId).reduce((sum, acc) => sum + acc.Value, 0);
@@ -101,7 +102,7 @@ function Dashboard () {
             //get User transaction history
             const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}`);
             setdata(history.data.message);
-            //console.log(history.data.message , `${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}`)
+            //console.log('History: ', data)
 
             if (errorOpen) {
                 const timer = setTimeout(() => {
@@ -133,15 +134,19 @@ function Dashboard () {
     //deposit / withdraw
     const depositFunc = async ()=>{
         let Amount = 0
-        if (method === 'Deposit'){
+        if (method === 'Deposit' || method === 'Reverse'){
             Amount = depAmount;
         } else if(method === 'Withdraw'){
             Amount = -depAmount;
-        } 
-        if (depAmount <= 0 || isNaN(depAmount)){
-            showError(`Your ${method} amount is invalid`)
-            return;
         }
+
+        if (method !== "Reverse"){
+            if (depAmount <= 0 || isNaN(depAmount)){
+                showError(`Your ${method} amount is invalid`)
+                return;
+            }
+        }
+
         try{
             setisLoading(true)
             //send deposit to server
@@ -150,7 +155,8 @@ function Dashboard () {
                 accTypeId: activeTypeId,
                 amount: Number(Math.floor(Amount * 100) / 100),
                 description: desData,
-                userId: userId
+                userId: userId,
+                action: method,
             });
             //console.log(response.data)
             if (!response.data.Sucess){
@@ -166,17 +172,27 @@ function Dashboard () {
     }
 
     //Reverse 
-    const reverseFunc = async (amount,Type,accNo,typeId)=>{
+    const reverseFunc = async (amount,Type,accNo,typeId,rowMethod)=>{
         setdesData(`Reversal for ${Type}, Amout=${amount}`);
         setactiveType(Type);
-        setactiveTypeId(typeId)
+        setactiveTypeId(typeId);
         setactiveaccNo(accNo);
+        setmethod('Reverse');
+        //console.log('amount:',rowMethod)
+        if (rowMethod === 'Reverse'){
+            showError('Cannot reverse a reversal');
+            setrevOpen(false)
+            return;
+        }
         if (amount<0){
-            setmethod('Deposit');
-            setdepAmount(-amount);
+            //setmethod('Deposit');
+            //setdepAmount(-amount);
+            showError('Invalid Reversal')
+            setrevOpen(false);
+            return;
         }else if(amount > 0){
-            setmethod('Withdraw');
-            setdepAmount(amount);
+            //setmethod('Withdraw');
+            setdepAmount(-amount);
         }
         setrevOpen(true);
     }
@@ -289,6 +305,7 @@ function Dashboard () {
                                     <th>date</th>
                                     <th>description</th>
                                     <th>account</th>
+                                    <th>type</th>
                                     <th>balance</th>
                                     <th>ammount</th>
                                 </tr>
@@ -309,8 +326,9 @@ function Dashboard () {
                                     })()}</td>
                                     <td>{info.description}</td>
                                     <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accTypeId.Name}</td>
-                                    <td style={{color:'rgb(3, 154, 13)'}}>{info.balance}</td>
-                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
+                                    <td style={{color:info.type==='Deposit' ? 'rgb(0, 255, 26)' : info.type==='Withdraw' ? 'rgb(255, 4, 0)' : info.type==='Reverse' ? 'rgb(234, 255, 0)' : 'rgba(0, 72, 255, 1)'}}>{info.type}</td>
+                                    <td style={{color:'rgb(3, 154, 13)'}}>{info.balance.toFixed(2)}</td>
+                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
                                 </tr>
                                 )}
                             </tbody>
