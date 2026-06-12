@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 import { Oval } from 'react-loader-spinner';//loading spinner
 import { IoArrowUndoCircleOutline } from "react-icons/io5";
 
-
 function Dashboard () {
 
     const [data, setdata] = useState([]);
@@ -39,6 +38,8 @@ function Dashboard () {
     const userId = Cookies.get('userId');
     const [selectVal, setselectVal] = useState('All')
     const [info, setInfo] = useState();
+    const [searchtype, setsearchtype] = useState('All')
+    const [page, setpage] = useState(1)
     const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
     //ERROR display function
@@ -54,6 +55,22 @@ function Dashboard () {
     const navigateTo = (location) =>{
         navigate('/'+location);
     }
+    //formate date function
+    const formatDateTime = (dateInput) => {
+    const date = new Date(dateInput);
+
+    const options = {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false, // 24-hour format
+    };
+
+    const formatted = new Intl.DateTimeFormat("en-US", options).format(date);
+    return formatted
+    };
 
     //get all account types
     const getacctypes =async ()=>{
@@ -76,7 +93,7 @@ function Dashboard () {
             //get user details and store as cookie if they dont already exist
             if(!Cookies.get('fName') || !Cookies.get('lName') || !Cookies.get('email') || !Cookies.get('pNumber')){
                 const user = await axios.get(`${URL.baseURL}${URL.API_URL}/users/getUser/${userId}`);
-                console.log(user.data)
+                //console.log(user.data)
                 Cookies.set('fName', user.data.message[0].fName, { expires: 3 });//store all user details as cookies
                 Cookies.set('lName', user.data.message[0].lName, { expires: 3 });
                 Cookies.set('email', user.data.message[0].email, { expires: 3 });
@@ -100,7 +117,7 @@ function Dashboard () {
             settotalBal(totalValue)
 
             //get User transaction history
-            const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}`);
+            const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}/${searchtype}/${page}`);
             setdata(history.data.message);
             //console.log('History: ', data)
 
@@ -131,14 +148,18 @@ function Dashboard () {
         if ( modalName === 'createAccountModal' ){setcreateOpen(true);}
     }
 
+    //cleanup memory
+    const cleanUp=()=>{
+        setdepAmount(0);
+        setdesData('');
+        setmethod('');
+        setactiveaccNo();
+        setactiveType('')
+    }
+
     //deposit / withdraw
     const depositFunc = async ()=>{
-        let Amount = 0
-        if (method === 'Deposit' || method === 'Reverse'){
-            Amount = depAmount;
-        } else if(method === 'Withdraw'){
-            Amount = -depAmount;
-        }
+        const Amount = depAmount;
 
         if (method !== "Reverse"){
             if (depAmount <= 0 || isNaN(depAmount)){
@@ -158,7 +179,7 @@ function Dashboard () {
                 userId: userId,
                 action: method,
             });
-            //console.log(response.data)
+
             if (!response.data.Sucess){
                 showError(response.data.message)
             }
@@ -166,6 +187,7 @@ function Dashboard () {
             setdepOpen(false);
             setrevOpen(false);
             setisLoading(false)
+            cleanUp()
         }catch(err){
             showError(err)
         }
@@ -178,21 +200,18 @@ function Dashboard () {
         setactiveTypeId(typeId);
         setactiveaccNo(accNo);
         setmethod('Reverse');
-        //console.log('amount:',rowMethod)
-        if (rowMethod === 'Reverse'){
-            showError('Cannot reverse a reversal');
+
+        if (rowMethod === 'Reverse' || rowMethod === 'Withdraw'){
+            showError('Cannot reverse a reversal or withdrawal');
             setrevOpen(false)
             return;
         }
-        if (amount<0){
-            //setmethod('Deposit');
-            //setdepAmount(-amount);
+        if(rowMethod==='Deposit'){
+            setdepAmount(amount);
+        }else{
             showError('Invalid Reversal')
             setrevOpen(false);
             return;
-        }else if(amount > 0){
-            //setmethod('Withdraw');
-            setdepAmount(-amount);
         }
         setrevOpen(true);
     }
@@ -307,28 +326,21 @@ function Dashboard () {
                                     <th>account</th>
                                     <th>type</th>
                                     <th>balance</th>
+                                    <th>commision</th>
                                     <th>ammount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.filter(item => selectVal==='All' || item.accTypeId.Name=== selectVal).map((info)=>
+                                {data //.filter(item => selectVal==='All' || item.accTypeId.Name=== selectVal)
+                                .map((info)=>
                                 <tr key={info._id} style={{position:'relative'}}>
-                                    <td>{(()=>{
-                                        //Date function
-                                        const date = new Date(info.date);
-                                        const month = MONTHS[date.getMonth()];
-                                        const day = date.getDate();
-                                        const year = date.getFullYear();
-                                        const hour = date.getHours();
-                                        const minute = String(date.getMinutes()).padStart(2, "0");
-                                        const dateRefined = (`${month} ${day}, ${year} :: ${hour}:${minute}`)
-                                        return dateRefined;
-                                    })()}</td>
+                                    <td>{formatDateTime(info.date)}</td>
                                     <td>{info.description}</td>
                                     <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accTypeId.Name}</td>
-                                    <td style={{color:info.type==='Deposit' ? 'rgb(0, 255, 26)' : info.type==='Withdraw' ? 'rgb(255, 4, 0)' : info.type==='Reverse' ? 'rgb(234, 255, 0)' : 'rgba(0, 72, 255, 1)'}}>{info.type}</td>
+                                    <td style={{color:info.type==='Deposit' ? 'rgb(0, 255, 26)' : info.type==='Withdraw' ? 'rgb(255, 4, 0)' : info.type==='Reverse' ? 'rgb(175, 191, 0)' : 'rgba(0, 72, 255, 1)'}}>{info.type}</td>
                                     <td style={{color:'rgb(3, 154, 13)'}}>{info.balance.toFixed(2)}</td>
-                                    <td>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
+                                    <td>{Number(info.commision).toFixed(2)}</td>
+                                    <td style={{backgroundColor:info.type==='Deposit' ? 'rgba(0, 255, 26, 0.44)' : info.type==='Withdraw' ? 'rgba(255, 4, 0, 0.4)' : info.type==='Reverse' ? 'rgba(234, 255, 0, 0.39)' : ''}}>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
                                 </tr>
                                 )}
                             </tbody>
@@ -346,7 +358,7 @@ function Dashboard () {
                 >
                         <h2>{activeType} Account</h2>
                         <input type='number' min='0' step={.01} placeholder='Gh₵ (2 decimal place)' onChange={(val)=>setdepAmount(Number(val.target.value))} />
-                        <textarea onChange={(val)=>setdesData(val.target.value)}></textarea>
+                        <textarea placeholder='description' onChange={(val)=>setdesData(val.target.value)}></textarea>
                         <button onClick={depositFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
                             {isLoading ?
                                 <Oval
@@ -382,7 +394,7 @@ function Dashboard () {
                                 <div><span>{info.accNumber}</span></div>
                                 <div style={{
                                     padding:5, backgroundColor:'rgba(255, 0, 0, 0.72)', borderRadius:5
-                                }}><span style={{color:'white'}}>Gh¢ {info.Value}</span></div>
+                                }}><span style={{color:'white'}}>Gh¢ {info.Value.toFixed(2)}</span></div>
                         </button>
                         ) : ''}
 

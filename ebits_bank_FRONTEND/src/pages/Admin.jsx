@@ -93,23 +93,6 @@ function TierRow({ index, min, max, percent, removetier, onChange }) {
       gap: 10, alignItems: "center", padding: "10px 14px",
       background: "#f5f9ff", borderRadius: 10, marginBottom: 8
     }}>
-      {/* <span style={{ fontSize: 13, color: "#4a6a8a", fontWeight: 500 }}>{label}</span>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <input
-          type="number" min={0} step={0.5} max={100} 
-          value={value}
-           onChange={(e) => onChange( target , parseFloat(e.target.value) || 0 )}
-          style={{
-            width: "100%", padding: "6px 10px", borderRadius: 8,
-            border: "1.5px solid #c7ddf5", fontSize: 14,
-            color: "#1a3a5c", outline: "none", background: "#fff"
-          }}
-        />
-        <span style={{ fontSize: 13, color: "#7a9cbf", whiteSpace: "nowrap" }}>%</span>
-      </div>
-      <Badge color={value === 0 ? "#22c55e" : "#3b82f6"}>
-        {value === 0 ? "Free" : `${value}%`}
-      </Badge> */}
       <p>{String(index+1).padStart(2, '0')}</p>
       <input 
         type="number" min={0} step={0.5} value={min} onChange={(e) => onChange(e.target.value,index,"min")}
@@ -270,19 +253,14 @@ function AccountFormModal({ account, onSave, onClose }) {
   const [Tiers, setTiers] = useState(account ? account.tiers : TIERS)
   const [form, setForm] = useState(
     account
-      //? { ...account, tiers: account.tiers.map(t => ({ ...t })) }
-      ? account
-      : {
-          //id: Date.now(),
+      ? account //edit account data
+      : { // new account data
           Name: "",
           //icon: "🏦",
           color: "#3b82f6",
           minWithdrawal: 20,
-          //tiers: DEFAULT_TIERS.map(t => ({ ...t })),
-          below300:0,
-          from300to499:0.5,
-          from500to999:1,
-          above1000:2
+          minBalance: 0,
+          minDeposit: 0,
         }
   );
 
@@ -326,15 +304,35 @@ function AccountFormModal({ account, onSave, onClose }) {
           />
         </div>
 
-
-
         {/* Min Withdrawal */}
         <div>
-          <label style={labelStyle}>Minimum Withdrawal Amount ($)</label>
+          <label style={labelStyle}>Minimum Withdrawal Amount (Gh¢)</label>
           <input
             type="number" min={0}
             value={form.minWithdrawal}
             onChange={e => setForm(f => ({ ...f, minWithdrawal: parseFloat(e.target.value) || 0 }))}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Min Deposit */}
+        <div>
+          <label style={labelStyle}>Minimum Deposit Amount (Gh¢)</label>
+          <input
+            type="number" min={0}
+            value={form.minDeposit}
+            onChange={e => setForm(f => ({ ...f, minDeposit: parseFloat(e.target.value) || 0 }))}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Min Balance */}
+        <div>
+          <label style={labelStyle}>Minimum Balance</label>
+          <input
+            type="number" min={0}
+            value={form.minBalance}
+            onChange={e => setForm(f => ({ ...f, minBalance: parseFloat(e.target.value) || 0 }))}
             style={inputStyle}
           />
         </div>
@@ -356,14 +354,13 @@ function AccountFormModal({ account, onSave, onClose }) {
               }}
             onClick={addTierRow}><IoIosAddCircle size={15}/> Add tier</button>
           </div>
-          {/* {form.tiers.map(t => (
-            <TierRow key={t.id} tier={t} onChange={handleTierChange} />
-          ))} */}
+
           {Tiers && Tiers.map((tier,index)=>
             <TierRow key={index} min={tier.min} max={tier.max} percent={tier.percentage} index={index} removetier={()=>removeTierRow(index)} onChange={handleTierChange} target={'below300'}/>
           )}
         </div>
 
+        {/* Button */}
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
           <button onClick={onClose} style={secondaryBtnStyle}>Cancel</button>
           <button
@@ -378,6 +375,7 @@ function AccountFormModal({ account, onSave, onClose }) {
             {account ? "Save Changes" : "Create Account"}
           </button>
         </div>
+
       </div>
     </Modal>
   );
@@ -437,18 +435,19 @@ export default function Admin() {
     setTimeout(() => setToast(null), 3000);
   };
   const handleSave = async(form,tiers) => {
-    //console.log('tires',tiers)
       const payload = {
         Name: form.Name,
         minWithdrawal: form.minWithdrawal,
+        minDeposit: form.minDeposit,
+        minBalance: form.minBalance,
+        tiers: tiers,
         above1000:     form.above1000,//tiers.find(t => t.id === 1)?.commission ?? 0,
         from500to999:  form.from500to999,//tiers.find(t => t.id === 2)?.commission ?? 0,
         from300to499:  form.from300to499,//tiers.find(t => t.id === 3)?.commission ?? 0,
         below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
-        tiers: tiers
       };
     if (editAccount) {
-      //setAccounts(a => a.map(ac => ac.id === form.id ? form : ac));
+
       try{
       payload.id=  form._id;
 
