@@ -29,14 +29,15 @@ function Dashboard () {
     const [activeTypeId, setactiveTypeId] = useState();
     const [accountTypes, setaccountTypes] = useState();
     const [createType, setcreateType] = useState();//work on this
-    const [depOpen,setdepOpen] = useState(false)
-    const [revOpen,setrevOpen] = useState(false)
-    const [createOpen,setcreateOpen] = useState(false)
-    const [hasAccount, sethasAccount] = useState(false)
+    const [depOpen,setdepOpen] = useState(false);
+    const [revOpen,setrevOpen] = useState(false);
+    const [createOpen,setcreateOpen] = useState(false);
+    const [hasAccount, sethasAccount] = useState(false);
     const userId = Cookies.get('userId');
     const [selectVal, setselectVal] = useState('All')
     const [info, setInfo] = useState();
     const [page, setpage] = useState(1);
+    const [pagesArray, setpagesArray] = useState([1,2,3,4,5]);
     const firstRender = useRef(true)
     const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
@@ -132,7 +133,11 @@ function Dashboard () {
 
             //get User transaction history
             getHistory();
-            //console.log('History: ', data)
+
+            //set pages array
+            if(page>3){
+                setpagesArray([page-2,page-1,page,page+1,page+2])
+            }else{setpagesArray([1,2,3,4,5])}
 
             if (errorOpen) {
                 const timer = setTimeout(() => {
@@ -148,7 +153,7 @@ function Dashboard () {
     useEffect(()=>{
         checkAccounts();
         getacctypes();
-    },[errorOpen,selectVal])
+    },[errorOpen,selectVal,page])
 
     //Opens Available Modals for deposit and withdraw
     const openModal = async (method,type,modalName,accNo,typeId)=>{
@@ -321,11 +326,15 @@ function Dashboard () {
                 <div className='bottomContent'>
                     <div className='upperBttm'>
                         <span style={{fontSize:19, fontWeight:'bold'}}>Transaction History</span>
-                        <p>pagination</p>
+                        <div style={{display:'flex', gap:5, alignItems:'center'}}>
+                            <span onClick={()=>setpage(p => Math.max(1, p - 1))} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background:'#eee', color:'#333', userSelect:'none'}}>&lt;</span>
+                            {pagesArray.map(num => (
+                                <span key={num} onClick={()=>setpage(num)} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background: page === num ? 'blue' : '#eee', color: page === num ? 'white' : '#333'}}>{num}</span>
+                            ))}
+                            <span onClick={()=>setpage(p => p + 1)} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background:'#eee', color:'#333', userSelect:'none'}}>&gt;</span>
+                        </div>
                         <select value={selectVal} onChange={(val)=>setselectVal(val.target.value)}>
                             <option value="All">All Accounts</option>
-                            {/* <option value="Current">Current Account</option>
-                            <option value="Savings">Savings Account</option> */}
                             { accountTypes ? 
                                 accountTypes.map((item)=>
                                     <option key={item._id} value={item._id}>{item.Name}</option>
