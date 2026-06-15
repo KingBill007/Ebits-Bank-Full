@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import {URL} from '../data/URL';
 import '../styles/main.css';
 import { FaTrashAlt } from "react-icons/fa";
@@ -143,6 +144,8 @@ const ican = '🏦';
 
 function AccountCard({ account, onEdit, onDelete }) {
   const [hover, setHover] = useState(false);
+  const tiers = account.tiers
+  console.log(tiers)
   return (
     <div
       onMouseEnter={() => setHover(true)}
@@ -226,14 +229,14 @@ function AccountCard({ account, onEdit, onDelete }) {
 
       {/* Tier summary */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        {control.map(({ key, label }) => (
-          <span key={key} style={{
-            background: account[key] === 0 ? "#f0fdf4" : "#eff6ff",
-            color: account[key] === 0 ? "#16a34a" : "#2563eb",
-            border: `1px solid ${account[key] === 0 ? "#bbf7d0" : "#bfdbfe"}`,
+        {tiers.map(( item, index ) => (
+          <span item={item} style={{
+            background: item.max!==null && item.max!=0 ? "#f0fdf4" : "#eff6ff",
+            color: item.max!==null && item.max!=0 ? "#16a34a" : "#2563eb",
+            border: `1px solid ${item.max!==null && item.max!=0 ? "#bbf7d0" : "#bfdbfe"}`,
             borderRadius: 7, fontSize: 11, padding: "3px 9px", fontWeight: 600
-          }}>
-            {label}: {account[key]}%
+          }} key={index}>
+            {`${item.min}-${item.max==null || item.max===0 ? 'unlimited' : item.max} : ${item.percentage}%`}
           </span>
         ))}
         
@@ -427,13 +430,32 @@ export default function Admin() {
   const [toast, setToast] = useState(null);
   const [allaccounts, setallaccounts] = useState();
   const [activeId, setactiveId] = useState();
-
-
+  const [user, setuser]=useState()
+  const userId = Cookies.get('userId');
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
+
+  //get user details
+  const getUser=async()=>{
+    try{
+      //check if userId exist as cookie
+      if (!userId){
+          navigateTo('');
+          return;
+      }
+      const response = await axios.get(`${URL.baseURL}${URL.API_URL}/users/getUser/${userId}`);
+      setuser(response.data.message[0])
+      //console.log(response.data.message[0])
+    }catch(err){
+      showToast(err.message)
+    }
+  }
+  useEffect(()=>{
+    getUser()
+  },[])
   const handleSave = async(form,tiers) => {
       const payload = {
         Name: form.Name,
@@ -441,10 +463,10 @@ export default function Admin() {
         minDeposit: form.minDeposit,
         minBalance: form.minBalance,
         tiers: tiers,
-        above1000:     form.above1000,//tiers.find(t => t.id === 1)?.commission ?? 0,
-        from500to999:  form.from500to999,//tiers.find(t => t.id === 2)?.commission ?? 0,
-        from300to499:  form.from300to499,//tiers.find(t => t.id === 3)?.commission ?? 0,
-        below300:      form.below300, //tiers.find(t => t.id === 4)?.commission ?? 0,
+        above1000:     form.above1000,
+        from500to999:  form.from500to999,
+        from300to499:  form.from300to499,
+        below300:      form.below300, 
       };
     if (editAccount) {
 
@@ -458,7 +480,6 @@ export default function Admin() {
 
       }catch(err){showToast(err.message,'error')}
     } else {
-      //setAccounts(a => [...a, form]);
       try{
         
         const addacc = await axios.post(`${URL.baseURL}${URL.API_URL}/accountType/addnew`,payload);
@@ -489,7 +510,7 @@ export default function Admin() {
     try{
       const response = await axios.get(`${URL.baseURL}${URL.API_URL}/accountType`);
       setallaccounts(response.data.message)
-      //console.log(response.data.message);
+      //console.log('allaccounts', response.data.message);
     }catch(err){showError(err)}
   }
   useEffect(()=>{
@@ -544,7 +565,7 @@ export default function Admin() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ fontSize: 13, color: "#7a9cbf" }}>
-              <span style={{ color: "#1a3a5c", fontWeight: 600 }}>Admin</span> · Account Manager
+              <span style={{ color: "#1a3a5c", fontWeight: 600 }}>{user && `${user.fName} ${user.lName}`}</span> · {user && user.role}
             </div>
             <div style={{
               width: 36, height: 36, borderRadius: "50%",
@@ -592,9 +613,9 @@ export default function Admin() {
           gap: 16, marginBottom: 32, animation: "slideUp .35s ease"
         }}>
           {[
-            { label: "Total Account Types", value: accounts.length, icon: "🏦" },
-            { label: "Avg Min Withdrawal", value: `$${accounts.length ? Math.round(accounts.reduce((s, a) => s + a.minWithdrawal, 0) / accounts.length) : 0}`, icon: "💸" },
-            { label: "Commission Tiers", value: accounts.length ? accounts[0].tiers.length : 0, icon: "📊" },
+            { label: "Total Account Types", value: allaccounts && allaccounts.length, icon: "🏦" },
+            { label: "Avg Min Withdrawal", value: `$${allaccounts && Math.round(allaccounts.reduce((sum, acc) => sum + acc.minWithdrawal, 0) /allaccounts.length) }`, icon: "💸" },
+            { label: "Commission Tiers", value: allaccounts && allaccounts.flatMap(account => account.tiers).length, icon: "📊" },
           ].map((s, i) => (
             <div key={i} style={{
               background: "#fff", borderRadius: 14, padding: "18px 22px",
@@ -635,7 +656,7 @@ export default function Admin() {
           }}>
             {allaccounts ?  allaccounts.map(ac => (
               <AccountCard
-                key={ac.id}
+                key={ac._id}
                 account={ac}
                 onEdit={handleEdit}
                 onDelete={(id) => setDeleteId(id)}

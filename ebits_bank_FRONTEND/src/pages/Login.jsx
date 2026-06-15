@@ -29,7 +29,14 @@ function Login() {
 
   const check =()=>{
     const userId = Cookies.get('userId');
-    if(userId){navigateTo('dashboard')}
+    const isAdmin = Cookies.get('isAdmin');
+    if(userId){
+      if(isAdmin){
+        navigateTo('admin')
+      }else if (!isAdmin){
+        navigateTo('dashboard')
+      }
+    }
 
     if (errorOpen) {
     const timer = setTimeout(() => {
@@ -51,13 +58,18 @@ function Login() {
           email: email,
           password: password
         })
-        console.log(response.data)
-        if (response.data.Sucess == false){
+        const info = response.data;
+        if (!response.data.Sucess){
           showError(response.data.message)
           return;
-        }else if (response.data.Sucess == true){
+        }else if (response.data.Sucess){
           Cookies.set('userId', response.data.userId);
-          navigateTo('dashboard')
+          Cookies.set('isAdmin', response.data.isAdmin);
+          if (info.isAdmin){
+            navigateTo('admin')
+          }else{
+            navigateTo('dashboard')
+          }
         }
     }catch(err){
       showError(err);

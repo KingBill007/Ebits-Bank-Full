@@ -88,10 +88,10 @@ function Dashboard () {
     }
 
     const getHistory=async()=>{
-        if(firstRender.current){
-            firstRender.current=false;
-            return;
-        }
+        // if(firstRender.current){
+        //     firstRender.current=false;
+        //     return;
+        // }
         try{
             const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}/${selectVal}/${page}`);
             setdata(history.data.message);
