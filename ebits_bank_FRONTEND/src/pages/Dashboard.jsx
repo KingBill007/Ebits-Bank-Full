@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState , useEffect , useRef } from 'react';
 import '../styles/main.css';
 import Card from '../components/Card';
-import { useState , useEffect , useRef } from 'react';
 import Header from '../components/Header';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -14,7 +13,6 @@ import { Oval } from 'react-loader-spinner';//loading spinner
 import { IoArrowUndoCircleOutline } from "react-icons/io5";
 
 function Dashboard () {
-
     const [data, setdata] = useState([]);
     const [otherAccs, setotherAccs] = useState();
     const [isLoading, setisLoading] = useState(false)
@@ -38,8 +36,8 @@ function Dashboard () {
     const userId = Cookies.get('userId');
     const [selectVal, setselectVal] = useState('All')
     const [info, setInfo] = useState();
-    const [searchtype, setsearchtype] = useState('All')
-    const [page, setpage] = useState(1)
+    const [page, setpage] = useState(1);
+    const firstRender = useRef(true)
     const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
     //ERROR display function
@@ -82,6 +80,22 @@ function Dashboard () {
             //console.log('all account types: ',refined)
         }catch(err){showError(err.message)}
     }
+
+    //set transactions filter
+    const setFilter=(typeId)=>{
+        setselectVal(typeId);
+    }
+
+    const getHistory=async()=>{
+        if(firstRender.current){
+            firstRender.current=false;
+            return;
+        }
+        try{
+            const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}/${selectVal}/${page}`);
+            setdata(history.data.message);
+        }catch(err){showError(err.message)}
+    }
     //Check if userId has accounts and save accounts
     const checkAccounts = async () =>{
         try{
@@ -117,8 +131,7 @@ function Dashboard () {
             settotalBal(totalValue)
 
             //get User transaction history
-            const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}/${searchtype}/${page}`);
-            setdata(history.data.message);
+            getHistory();
             //console.log('History: ', data)
 
             if (errorOpen) {
@@ -135,7 +148,7 @@ function Dashboard () {
     useEffect(()=>{
         checkAccounts();
         getacctypes();
-    },[errorOpen])
+    },[errorOpen,selectVal])
 
     //Opens Available Modals for deposit and withdraw
     const openModal = async (method,type,modalName,accNo,typeId)=>{
@@ -195,7 +208,7 @@ function Dashboard () {
 
     //Reverse 
     const reverseFunc = async (amount,Type,accNo,typeId,rowMethod)=>{
-        setdesData(`Reversal for ${Type}, Amout=${amount}`);
+        setdesData(`Reversal for ${Type}, Amout is ${amount}`);
         setactiveType(Type);
         setactiveTypeId(typeId);
         setactiveaccNo(accNo);
@@ -289,6 +302,7 @@ function Dashboard () {
                                         account={item.accNumber} 
                                         func={openModal}   
                                         transfer={()=>{settransAmount(0);settargetaccNo(); getseperateAccs(item.accType,item.accNumber)}} 
+                                        history={setFilter}
                                     />
                                     {info.length < 2 ?
                                         <button onClick={()=>{setcreateOpen(true)}} style={{width:'10%',height:100}} ><FaPlus size={50} color='rgba(63, 63, 64, 0.46)' /></button> :
@@ -307,13 +321,14 @@ function Dashboard () {
                 <div className='bottomContent'>
                     <div className='upperBttm'>
                         <span style={{fontSize:19, fontWeight:'bold'}}>Transaction History</span>
+                        <p>pagination</p>
                         <select value={selectVal} onChange={(val)=>setselectVal(val.target.value)}>
                             <option value="All">All Accounts</option>
                             {/* <option value="Current">Current Account</option>
                             <option value="Savings">Savings Account</option> */}
                             { accountTypes ? 
                                 accountTypes.map((item)=>
-                                    <option key={item._id} value={item.Name}>{item.Name}</option>
+                                    <option key={item._id} value={item._id}>{item.Name}</option>
                                 ) :"There are no account types"} 
                         </select>
                     </div>
@@ -340,7 +355,8 @@ function Dashboard () {
                                     <td style={{color:info.type==='Deposit' ? 'rgb(0, 255, 26)' : info.type==='Withdraw' ? 'rgb(255, 4, 0)' : info.type==='Reverse' ? 'rgb(175, 191, 0)' : 'rgba(0, 72, 255, 1)'}}>{info.type}</td>
                                     <td style={{color:'rgb(3, 154, 13)'}}>{info.balance.toFixed(2)}</td>
                                     <td>{Number(info.commision).toFixed(2)}</td>
-                                    <td style={{backgroundColor:info.type==='Deposit' ? 'rgba(0, 255, 26, 0.44)' : info.type==='Withdraw' ? 'rgba(255, 4, 0, 0.4)' : info.type==='Reverse' ? 'rgba(234, 255, 0, 0.39)' : ''}}>{info.Value}</td><button style={{position:'absolute', right:13,top:7}} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button>
+                                    <td style={{backgroundColor:info.type==='Deposit' ? 'rgba(0, 255, 26, 0.44)' : info.type==='Withdraw' ? 'rgba(255, 4, 0, 0.4)' : info.type==='Reverse' ? 'rgba(234, 255, 0, 0.39)' : ''}}>{info.Value}</td>
+                                    <td style={{position:'absolute', right:10,top:7,border:'none',padding:0}} ><button onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button></td>
                                 </tr>
                                 )}
                             </tbody>

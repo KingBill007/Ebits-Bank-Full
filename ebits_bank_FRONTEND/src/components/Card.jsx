@@ -38,7 +38,7 @@ function Card (props){
           <div style={{display:'flex',flexDirection:'row',alignItems:'center',gap:10}}>
             <button className="blueBttn">{props.type}</button>
             <button style={{backgroundColor:'transparent',borderWidth:0,cursor:'pointer'}} onClick={props.transfer}><FaMoneyBillTransfer color="red" size={30} /></button>
-            <FaHistory style={{cursor:'pointer'}} onClick={()=>alert('history')} color="rgba(99, 99, 99, 0.93)"/>
+            <FaHistory style={{cursor:'pointer'}} onClick={()=>props.history(props.typeId._id)} color="rgba(99, 99, 99, 0.93)"/>
           </div>
         </div>
         <div className="accountCardRight"> 
