@@ -31,6 +31,7 @@ function Header (props) {
             Cookies.remove('email');
             Cookies.remove('pNumber');
             Cookies.remove('totalAmount');
+            Cookies.remove('isAdmin');
             navigateTo('');
         }catch(err){
             console.log(err)
@@ -45,7 +46,7 @@ function Header (props) {
                         <span style={{fontFamily:'sans-serif',fontSize:14}}>Online Banking</span>
                     </div>
                         <button onClick={props.add} style={{
-                            backgroundColor: 'rgb(0, 176, 21)', width: 140, border: 'none', height:40, borderRadius: 10,color: 'white',
+                            backgroundColor: 'rgba(1, 45, 156, 1)', width: 140, border: 'none', height:40, borderRadius: 10,color: 'white',
                             fontSize: 16, cursor: 'pointer'
                         }}>Create Account</button>
                 </div>

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import {URL} from '../data/URL';
+import { useNavigate } from 'react-router-dom';
 import '../styles/main.css';
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaBars } from "react-icons/fa";
 import { IoIosAddCircle } from "react-icons/io";
 
 const DEFAULT_TIERS = [
@@ -145,7 +146,7 @@ const ican = '🏦';
 function AccountCard({ account, onEdit, onDelete }) {
   const [hover, setHover] = useState(false);
   const tiers = account.tiers
-  console.log(tiers)
+
   return (
     <div
       onMouseEnter={() => setHover(true)}
@@ -431,6 +432,8 @@ export default function Admin() {
   const [allaccounts, setallaccounts] = useState();
   const [activeId, setactiveId] = useState();
   const [user, setuser]=useState()
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const userId = Cookies.get('userId');
 
   const showToast = (msg, type = "success") => {
@@ -516,6 +519,36 @@ export default function Admin() {
   useEffect(()=>{
     getallacctypes()
   },[])
+  
+  //navigation function
+  const navigate = useNavigate();
+  const navigateTo = (location) => {
+  navigate("/" + location);
+  };
+  //Logout
+  const logoutFunc = ()=>{
+      try{
+          Cookies.remove('userId');
+          Cookies.remove('fName');
+          Cookies.remove('lName');
+          Cookies.remove('email');
+          Cookies.remove('pNumber');
+          Cookies.remove('totalAmount');
+          Cookies.remove('isAdmin');
+          navigateTo('');
+      }catch(err){
+          console.log(err)
+      }
+  }
+
+  // close menu on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   return (
     <div style={{
@@ -567,12 +600,27 @@ export default function Admin() {
             <div style={{ fontSize: 13, color: "#7a9cbf" }}>
               <span style={{ color: "#1a3a5c", fontWeight: 600 }}>{user && `${user.fName} ${user.lName}`}</span> · {user && user.role}
             </div>
-            <div style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "linear-gradient(135deg, #3b82f6, #0ea5e9)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontWeight: 700, fontSize: 14
-            }}>A</div>
+            <div ref={menuRef} style={{position:'relative'}}>
+              <div onClick={()=>setMenuOpen(p => !p)} style={{
+                width: 36, height: 36, borderRadius: 8, cursor:'pointer',
+                background: "linear-gradient(135deg, #3b82f6, #0ea5e9)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontSize: 16
+              }}><FaBars /></div>
+              {menuOpen && (
+                <div style={{
+                  position:'absolute', top:'100%', right:0, marginTop:8,
+                  background:'#fff', borderRadius:10, minWidth:140,
+                  boxShadow:'0 8px 30px rgba(0,0,0,0.12)', overflow:'hidden',
+                  border:'1.5px solid #e0edfa', zIndex:200
+                }}>
+                  <div onClick={()=>{ setMenuOpen(false); logoutFunc() }} style={{
+                    padding:'10px 16px', cursor:'pointer', fontSize:14, color:'#e05252',
+                    fontWeight:600, display:'flex', alignItems:'center', gap:8
+                  }}>Logout</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
