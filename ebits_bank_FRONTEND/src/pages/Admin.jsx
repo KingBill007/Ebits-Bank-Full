@@ -423,6 +423,24 @@ const secondaryBtnStyle = {
   padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer"
 };
 
+const DUMMY_USERS = [
+  { _id: '1', fName: 'Enoch', lName: 'Asante', email: 'enoch.asante@email.com', isAdmin: true },
+  { _id: '2', fName: 'Akua', lName: 'Mensah', email: 'akua.mensah@email.com', isAdmin: false },
+  { _id: '3', fName: 'Kwame', lName: 'Osei', email: 'kwame.osei@email.com', isAdmin: false },
+  { _id: '4', fName: 'Adwoa', lName: 'Boateng', email: 'adwoa.boateng@email.com', isAdmin: false },
+  { _id: '5', fName: 'Yaw', lName: 'Adjei', email: 'yaw.adjei@email.com', isAdmin: false },
+  { _id: '6', fName: 'Efia', lName: 'Owusu', email: 'efia.owusu@email.com', isAdmin: false },
+  { _id: '7', fName: 'Kofi', lName: 'Tetteh', email: 'kofi.tetteh@email.com', isAdmin: false },
+  { _id: '8', fName: 'Abena', lName: 'Sarpong', email: 'abena.sarpong@email.com', isAdmin: false },
+  { _id: '9', fName: 'Nana', lName: 'Agyeman', email: 'nana.agyeman@email.com', isAdmin: false },
+  { _id: '10', fName: 'Mawuli', lName: 'Dogbe', email: 'mawuli.dogbe@email.com', isAdmin: false },
+  { _id: '11', fName: 'Ama', lName: 'Ankrah', email: 'ama.ankrah@email.com', isAdmin: false },
+  { _id: '12', fName: 'Kojo', lName: 'Bamfo', email: 'kojo.bamfo@email.com', isAdmin: false },
+  { _id: '13', fName: 'Akosua', lName: 'Ampofo', email: 'akosua.ampofo@email.com', isAdmin: false },
+  { _id: '14', fName: 'Kwesi', lName: 'Nyarko', email: 'kwesi.nyarko@email.com', isAdmin: false },
+  { _id: '15', fName: 'Afua', lName: 'Asare', email: 'afua.asare@email.com', isAdmin: false },
+];
+
 export default function Admin() {
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
   const [showForm, setShowForm] = useState(false);
@@ -435,12 +453,37 @@ export default function Admin() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const userId = Cookies.get('userId');
+  const [users, setUsers] = useState(DUMMY_USERS);
+  const [userPage, setUserPage] = useState(1);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+  const toggleAdmin = async(id,isAdmin) => {
+    try{
+      const response = await axios.put(`${URL.baseURL}${URL.API_URL}/users/setadmin/${id}/${!isAdmin}`);
+
+      if (response.data.Sucess){showToast(response.data.message)}
+      else{showToast(response.data.message,'failure')}
+      getAllUsers()
+    }catch(err){console.log(err.message)}
+  };
+
+  const paginatedUsers = users;
+
+
+  //get user details
+  const getAllUsers=async()=>{
+    try{
+      const response = await axios.get(`${URL.baseURL}${URL.API_URL}/users/getallusers/${userPage}`);
+      setUsers(response.data.message)
+      //console.log(response.data.message)
+    }catch(err){
+      showToast(err.message)
+    }
+  }
   //get user details
   const getUser=async()=>{
     try{
@@ -451,14 +494,11 @@ export default function Admin() {
       }
       const response = await axios.get(`${URL.baseURL}${URL.API_URL}/users/getUser/${userId}`);
       setuser(response.data.message[0])
-      //console.log(response.data.message[0])
     }catch(err){
       showToast(err.message)
     }
   }
-  useEffect(()=>{
-    getUser()
-  },[])
+
   const handleSave = async(form,tiers) => {
       const payload = {
         Name: form.Name,
@@ -466,10 +506,10 @@ export default function Admin() {
         minDeposit: form.minDeposit,
         minBalance: form.minBalance,
         tiers: tiers,
-        above1000:     form.above1000,
-        from500to999:  form.from500to999,
-        from300to499:  form.from300to499,
-        below300:      form.below300, 
+        // above1000:     form.above1000,
+        // from500to999:  form.from500to999,
+        // from300to499:  form.from300to499,
+        // below300:      form.below300, 
       };
     if (editAccount) {
 
@@ -517,8 +557,14 @@ export default function Admin() {
     }catch(err){showError(err)}
   }
   useEffect(()=>{
-    getallacctypes()
+    getUser();
+    getAllUsers();
+    getallacctypes();
   },[])
+
+  useEffect(()=>{
+    getAllUsers();
+  },[userPage])
   
   //navigation function
   const navigate = useNavigate();
@@ -714,7 +760,129 @@ export default function Admin() {
         )}
       </main>
 
+      {/* Users Section */}
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 60px" }}>
+        <div style={{ animation: "slideUp .4s ease" }}>
+          <div style={{ marginBottom: 28 }}>
+            <h2 style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 26, fontWeight: 700, color: "#1a3a5c",
+              margin: "0 0 6px"
+            }}>Users</h2>
+            <p style={{ color: "#7a9cbf", fontSize: 14, margin: 0 }}>
+              Manage user accounts and admin permissions.
+            </p>
+          </div>
 
+          <div style={{
+            background: "#fff", borderRadius: 18,
+            border: "1.5px solid #e5eefb", overflow: "hidden",
+            boxShadow: "0 2px 10px rgba(60,100,180,0.06)"
+          }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#f8fbff", borderBottom: "1.5px solid #e5eefb" }}>
+                  {['Name', 'Email', 'Role', 'Action'].map(h => (
+                    <th key={h} style={{
+                      padding: "14px 20px", textAlign: "left",
+                      fontSize: 11, fontWeight: 700, color: "#7a9cbf",
+                      textTransform: "uppercase", letterSpacing: 0.7
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users && users.map((u, i) => (
+                  <tr key={u._id} style={{
+                    borderBottom: i < users.length - 1 ? "1.5px solid #f0f6ff" : "none",
+                    transition: "background .15s"
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = "#f8fbff"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <td style={{ padding: "16px 20px" }}>
+                      <div style={{ fontWeight: 600, color: "#1a3a5c", fontSize: 14 }}>
+                        {u.fName} {u.lName}
+                      </div>
+                    </td>
+                    <td style={{ padding: "16px 20px", color: "#5a7fa8", fontSize: 14 }}>
+                      {u.email}
+                    </td>
+                    <td style={{ padding: "16px 20px" }}>
+                      <span style={{
+                        display: "inline-block", padding: "4px 12px", borderRadius: 99,
+                        fontSize: 12, fontWeight: 600,
+                        background: u.isAdmin ? "#fef3e2" : "#f0f6ff",
+                        color: u.isAdmin ? "#d97706" : "#3b82f6",
+                        border: `1.5px solid ${u.isAdmin ? "#fde68a" : "#c7ddf5"}`
+                      }}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td style={{ padding: "16px 20px" }}>
+                      <button
+                        onClick={() => toggleAdmin(u._id,u.isAdmin)}
+                        style={{
+                          padding: "6px 16px", borderRadius: 9,
+                          border: "1.5px solid",
+                          cursor: "pointer", fontSize: 13, fontWeight: 600,
+                          fontFamily: "inherit",
+                          background: u.isAdmin ? "#fff5f5" : "#f0fdf4",
+                          borderColor: u.isAdmin ? "#fdc5c5" : "#bbf7d0",
+                          color: u.isAdmin ? "#e05252" : "#16a34a",
+                          transition: "all .15s"
+                        }}
+                        onMouseEnter={e => {
+                          e.target.style.background = u.isAdmin ? "#ffe0e0" : "#e6f9ed";
+                        }}
+                        onMouseLeave={e => {
+                          e.target.style.background = u.isAdmin ? "#fff5f5" : "#f0fdf4";
+                        }}
+                      >
+                        {u.isAdmin ? 'Revoke Admin' : 'Make Admin'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            marginTop: 20, gap: 12
+          }}>
+            <button
+              disabled={userPage <= 1}
+              onClick={() => setUserPage(p => p - 1)}
+              style={{
+                padding: "8px 18px", borderRadius: 9,
+                border: "1.5px solid #c7ddf5", background: "#fff",
+                fontSize: 13, fontWeight: 600, color: "#3b82f6",
+                cursor: userPage <= 1 ? "not-allowed" : "pointer",
+                opacity: userPage <= 1 ? 0.4 : 1,
+                fontFamily: "inherit"
+              }}
+            >Previous</button>
+            <span style={{
+              width: 36, height: 36, borderRadius: 9,
+              background: "linear-gradient(135deg, #3b82f6, #0ea5e9)",
+              color: "#fff", fontSize: 13, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}>{userPage}</span>
+            <button
+              onClick={() => setUserPage(p => p + 1)}
+              style={{
+                padding: "8px 18px", borderRadius: 9,
+                border: "1.5px solid #c7ddf5", background: "#fff",
+                fontSize: 13, fontWeight: 600, color: "#3b82f6",
+                cursor: "pointer", fontFamily: "inherit"
+              }}
+            >Next</button>
+          </div>
+        </div>
+      </main>
 
       {/* Modals */}
       {showForm && (
