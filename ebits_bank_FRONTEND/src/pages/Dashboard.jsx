@@ -310,7 +310,7 @@ function Dashboard () {
                                         history={setFilter}
                                     />
                                     {info.length < 2 ?
-                                        <button onClick={()=>{setcreateOpen(true)}} style={{width:'10%',height:100}} ><FaPlus size={50} color='rgba(63, 63, 64, 0.46)' /></button> :
+                                        <button className={styles.addAccountBtn} onClick={()=>{setcreateOpen(true)}}><FaPlus size={40} /></button> :
                                         <></>
                                     }
                                 </React.Fragment>
@@ -323,26 +323,28 @@ function Dashboard () {
                         </div>)
                     }    
                 </div>
-                <div className='bottomContent'>
-                    <div className='upperBttm'>
-                        <span style={{fontSize:19, fontWeight:'bold'}}>Transaction History</span>
-                        <div style={{display:'flex', gap:5, alignItems:'center'}}>
-                            <span onClick={()=>setpage(p => Math.max(1, p - 1))} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background:'#eee', color:'#333', userSelect:'none'}}>&lt;</span>
-                            {pagesArray.map(num => (
-                                <span key={num} onClick={()=>setpage(num)} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background: page === num ? 'blue' : '#eee', color: page === num ? 'white' : '#333'}}>{num}</span>
-                            ))}
-                            <span onClick={()=>setpage(p => p + 1)} style={{cursor:'pointer', padding:'4px 10px', borderRadius:4, background:'#eee', color:'#333', userSelect:'none'}}>&gt;</span>
+                <div className={`bottomContent ${styles.bottomCard}`}>
+                    <div className={styles.controlsBar}>
+                        <span className={styles.transactionTitle}>Transaction History</span>
+                        <div className={styles.controlsGroup}>
+                            <div className={styles.pagination}>
+                                <span onClick={()=>setpage(p => Math.max(1, p - 1))} className={styles.pageBtn}>&lt;</span>
+                                {pagesArray.map(num => (
+                                    <span key={num} onClick={()=>setpage(num)} className={`${styles.pageBtn} ${page === num ? styles.pageBtnActive : ''}`}>{num}</span>
+                                ))}
+                                <span onClick={()=>setpage(p => p + 1)} className={styles.pageBtn}>&gt;</span>
+                            </div>
+                            <select className={styles.filterSelect} value={selectVal} onChange={(val)=>setselectVal(val.target.value)}>
+                                <option value="All">All Accounts</option>
+                                { accountTypes ? 
+                                    accountTypes.map((item)=>
+                                        <option key={item._id} value={item._id}>{item.Name}</option>
+                                    ) :"There are no account types"} 
+                            </select>
                         </div>
-                        <select value={selectVal} onChange={(val)=>setselectVal(val.target.value)}>
-                            <option value="All">All Accounts</option>
-                            { accountTypes ? 
-                                accountTypes.map((item)=>
-                                    <option key={item._id} value={item._id}>{item.Name}</option>
-                                ) :"There are no account types"} 
-                        </select>
                     </div>
-                    <div className='lowerBttm'>
-                        <table>
+                    <div className={styles.tableWrapper}>
+                        <table className={styles.table}>
                             <thead>
                                 <tr>
                                     <th>date</th>
@@ -352,20 +354,25 @@ function Dashboard () {
                                     <th>balance</th>
                                     <th>commision</th>
                                     <th>ammount</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data //.filter(item => selectVal==='All' || item.accTypeId.Name=== selectVal)
+                                {data
                                 .map((info)=>
-                                <tr key={info._id} style={{position:'relative'}}>
-                                    <td>{formatDateTime(info.date)}</td>
-                                    <td>{info.description}</td>
-                                    <td style={{color:'rgba(0, 72, 255, 1)'}}>{info.accTypeId.Name}</td>
-                                    <td style={{color:info.type==='Deposit' ? 'rgb(0, 255, 26)' : info.type==='Withdraw' ? 'rgb(255, 4, 0)' : info.type==='Reverse' ? 'rgb(175, 191, 0)' : 'rgba(0, 72, 255, 1)'}}>{info.type}</td>
-                                    <td style={{color:'rgb(3, 154, 13)'}}>{info.balance.toFixed(2)}</td>
-                                    <td>{Number(info.commision).toFixed(2)}</td>
-                                    <td style={{backgroundColor:info.type==='Deposit' ? 'rgba(0, 255, 26, 0.44)' : info.type==='Withdraw' ? 'rgba(255, 4, 0, 0.4)' : info.type==='Reverse' ? 'rgba(234, 255, 0, 0.39)' : ''}}>{info.Value}</td>
-                                    <td style={{position:'absolute', right:10,top:7,border:'none',padding:0}} ><button onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='red' size={20} /></button></td>
+                                <tr key={info._id}>
+                                    <td className={styles.tableDate}>{formatDateTime(info.date)}</td>
+                                    <td className={styles.tableDesc}>{info.description}</td>
+                                    <td className={styles.accountLink}>{info.accTypeId.Name}</td>
+                                    <td>
+                                        <span className={`${styles.badge} ${info.type === 'Deposit' ? styles.badgeDeposit : info.type === 'Withdraw' ? styles.badgeWithdraw : info.type === 'Reverse' ? styles.badgeReverse : styles.badgeTransfer}`}>
+                                            {info.type}
+                                        </span>
+                                    </td>
+                                    <td className={styles.balanceCell}>{info.balance.toFixed(2)}</td>
+                                    <td className={styles.commissionCell}>{Number(info.commision).toFixed(2)}</td>
+                                    <td className={info.type === 'Deposit' ? styles.amountDeposit : info.type === 'Withdraw' ? styles.amountWithdraw : info.type === 'Reverse' ? styles.amountReverse : styles.amountDefault}>{info.Value}</td>
+                                    <td><button className={styles.reverseBtn} onClick={()=>{reverseFunc(info.Value,info.accTypeId.Name,info.accNumber,info.accTypeId,info.type)}}><IoArrowUndoCircleOutline color='#dc3545' size={20} /></button></td>
                                 </tr>
                                 )}
                             </tbody>
@@ -374,7 +381,7 @@ function Dashboard () {
                 </div>
             </div>
 
-                <Modal //modal for deposit
+                <Modal
                     name="depositModal"
                     isOpen={depOpen} 
                     onRequestClose={() => setdepOpen(false)} 
@@ -384,21 +391,24 @@ function Dashboard () {
                         <h2>{activeType} Account</h2>
                         <input type='number' min='0' step={.01} placeholder='Gh₵ (2 decimal place)' onChange={(val)=>setdepAmount(Number(val.target.value))} />
                         <textarea placeholder='description' onChange={(val)=>setdesData(val.target.value)}></textarea>
-                        <button onClick={depositFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-                            {isLoading ?
-                                <Oval
-                                    height={20}
-                                    width={20}
-                                    color="#012D9C"
-                                    secondaryColor="#f3f3f3"
-                                    strokeWidth={5}
-                                    strokeWidthSecondary={5}
-                                /> : 
-                                method
-                            }
-                        </button>
+                        <div className={styles.modalActions}>
+                            <button className={styles.btnSecondary} onClick={() => setdepOpen(false)}>Cancel</button>
+                            <button className={styles.btnPrimary} onClick={depositFunc}>
+                                {isLoading ?
+                                    <Oval
+                                        height={20}
+                                        width={20}
+                                        color="#ffffff"
+                                        secondaryColor="#8ab4f8"
+                                        strokeWidth={5}
+                                        strokeWidthSecondary={5}
+                                    /> : 
+                                    method
+                                }
+                            </button>
+                        </div>
                 </Modal>
-                <Modal //modal for transfer btw Accounts
+                <Modal
                     name="transferModal"
                     isOpen={transModal} 
                     onRequestClose={() => settransModal(false)} 
@@ -409,37 +419,34 @@ function Dashboard () {
                         {otherAccs ? otherAccs.map((info)=>
                             <button 
                             key={info._id}
-                            style={{
-                            width: 280, height: 40, borderRadius:5, cursor:'pointer', borderWidth:info.accNumber==targetaccNo ? 3 : 0, display:'flex', flexDirection:'row',
-                            backgroundColor:'rgba(2, 48, 255, 0.47)', marginBottom: 10,justifyContent:'space-between', alignItems:'center',
-                            borderColor:info.accNumber==targetaccNo ? 'orange' : 'white'
-                            }}
+                            className={`${styles.transferAccountBtn} ${info.accNumber === targetaccNo ? styles.transferAccountBtnSelected : ''}`}
                                 onClick={()=>{info.accNumber!==targetaccNo ? settargetaccNo(info.accNumber) : settargetaccNo();}}
                             >
-                                <div><span>{info.accNumber}</span></div>
-                                <div style={{
-                                    padding:5, backgroundColor:'rgba(255, 0, 0, 0.72)', borderRadius:5
-                                }}><span style={{color:'white'}}>Gh¢ {info.Value.toFixed(2)}</span></div>
+                                <span className={styles.transferAccNumber}>{info.accNumber}</span>
+                                <span className={styles.transferAccBalance}>Gh¢ {info.Value.toFixed(2)}</span>
                         </button>
                         ) : ''}
 
                         <input type='number' min='0' step={.01} placeholder='Gh₵ (2 decimal place)' onChange={(val)=>settransAmount(Number(val.target.value))} />
                         
-                        <button onClick={transferFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-                            {isLoading ?
-                                <Oval
-                                    height={20}
-                                    width={20}
-                                    color="#012D9C"
-                                    secondaryColor="#f3f3f3"
-                                    strokeWidth={5}
-                                    strokeWidthSecondary={5}
-                                /> : 
-                                method
-                            }
-                        </button>
+                        <div className={styles.modalActions}>
+                            <button className={styles.btnSecondary} onClick={() => settransModal(false)}>Cancel</button>
+                            <button className={styles.btnPrimary} onClick={transferFunc}>
+                                {isLoading ?
+                                    <Oval
+                                        height={20}
+                                        width={20}
+                                        color="#ffffff"
+                                        secondaryColor="#8ab4f8"
+                                        strokeWidth={5}
+                                        strokeWidthSecondary={5}
+                                    /> : 
+                                    method
+                                }
+                            </button>
+                        </div>
                 </Modal>
-                <Modal //modal for create account
+                <Modal
                     name="createAccountModal"
                     isOpen={createOpen} 
                     onRequestClose={() => setcreateOpen(false)} 
@@ -447,40 +454,40 @@ function Dashboard () {
                     overlayClassName={styles.modalOverlay} 
                 >
                         <h2>Create Account</h2>
-                        <div style={{display:'flex',width:'100%',justifyContent:'space-around'}}>
+                        <div className={styles.createAccountRow}>
                             <select value={createType} onChange={(val)=>{setcreateType(val.target.value);console.log(val.target.value)}}>
-                                {/* <option value="Current">Current Account</option>
-                                <option value="Savings">Savings Account</option> */}
                                 { accountTypes ? 
                                 accountTypes.map((item)=>
                                     <option key={item._id} value={item._id}>{item.Name}</option>
                                 ) :"There are no account types"} 
                             </select>   
-                            <button onClick={createAccount}>Create account</button>
+                            <button className={styles.btnCreateAccount} onClick={createAccount}>Create</button>
                         </div>
                 </Modal>
-                <Modal //modal for Reverse
+                <Modal
                     name="reverseModal"
                     isOpen={revOpen} 
                     onRequestClose={() => setrevOpen(false)} 
                     className={styles.modalContent} 
                     overlayClassName={styles.modalOverlay} 
                 >
-                        <h2> Are you sure you want to reverse from {activeType} Account</h2>
-                        <button onClick={depositFunc} style={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-                            {isLoading ?
-                                <Oval
-                                    height={20}
-                                    width={20}
-                                    color="#012D9C"
-                                    secondaryColor="#f3f3f3"
-                                    strokeWidth={5}
-                                    strokeWidthSecondary={5}
-                                /> : 
-                                <span>Yes</span>
-                            }
-                        </button>
-                        <button onClick={()=>{setrevOpen(false)}}>No</button>
+                        <p className={styles.reverseModalText}>Are you sure you want to reverse from {activeType} Account?</p>
+                        <div className={styles.modalActions}>
+                            <button className={styles.btnSecondary} onClick={()=>{setrevOpen(false)}}>No</button>
+                            <button className={styles.btnPrimary} onClick={depositFunc}>
+                                {isLoading ?
+                                    <Oval
+                                        height={20}
+                                        width={20}
+                                        color="#ffffff"
+                                        secondaryColor="#8ab4f8"
+                                        strokeWidth={5}
+                                        strokeWidthSecondary={5}
+                                    /> : 
+                                    <span>Yes</span>
+                                }
+                            </button>
+                        </div>
                 </Modal>
                 <Modal //modal for ERROR!!!
                     name="errorModal"

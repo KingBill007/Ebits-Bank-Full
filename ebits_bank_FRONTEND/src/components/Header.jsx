@@ -3,15 +3,13 @@ import { CiUser } from "react-icons/ci";
 import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import styles from '../styles/dashboard.module.css'
-
+import styles from '../styles/header.module.css'
 
 function Header (props) {
 
     const fName = Cookies.get('fName');
     const lName = Cookies.get('lName');
 
-    //navigation function
     const navigate = useNavigate();
     const navigateTo = (location) => {
     navigate("/" + location);
@@ -22,7 +20,6 @@ function Header (props) {
         navigateTo('profile');
     }
 
-    //Logout
     const logoutFunc = ()=>{
         try{
             Cookies.remove('userId');
@@ -38,26 +35,23 @@ function Header (props) {
         }
     }
     return (
-            <div className='header'>
-                <div className='leftHeader'>
-                    <img src={logo} alt='logo' className='logoImg'/>
-                    <div className='textHeaderleft'>
-                        <span style={{fontSize:20,fontWeight:'bold',fontFamily:'sans-serif'}}>Ebits Bank</span>
-                        <span style={{fontFamily:'sans-serif',fontSize:14}}>Online Banking</span>
+            <div className={styles.header}>
+                <div className={styles.left}>
+                    <img src={logo} alt='logo' className={styles.logo}/>
+                    <div className={styles.brand}>
+                        <span className={styles.brandName}>Ebits Bank</span>
+                        <span className={styles.brandTagline}>Online Banking</span>
                     </div>
-                        <button onClick={props.add} style={{
-                            backgroundColor: 'rgba(1, 45, 156, 1)', width: 140, border: 'none', height:40, borderRadius: 10,color: 'white',
-                            fontSize: 16, cursor: 'pointer'
-                        }}>Create Account</button>
+                    <button className={styles.createBtn} onClick={props.add}>+ Create Account</button>
                 </div>
 
-                <div className='rightHeader'>
-                    <div className='textHeaderright'>
-                        <span style={{fontSize:13,color:'rgba(0, 0, 0, 0.62)'}}>Total Balance</span>
-                        <span style={{fontWeight: 'bold',fontSize: 20}}>{props.total ? props.total.toFixed(2) : Cookies.get('totalAmount')}</span>
+                <div className={styles.right}>
+                    <div className={styles.balance}>
+                        <span className={styles.balanceLabel}>Total Balance</span>
+                        <span className={styles.balanceValue}>GH₵ {props.total ? props.total.toFixed(2) : Cookies.get('totalAmount')}</span>
                     </div>
-                    <button className={styles.profile} onClick={navigateToProfile}><CiUser />{ fName + " " + lName }</button>
-                    <button className='exitBttn' onClick={logoutFunc}><IoMdExit color='black' size={20} /></button>  
+                    <button className={styles.profileBtn} onClick={navigateToProfile}><CiUser size={16} />{ fName + " " + lName }</button>
+                    <button className={styles.logoutBtn} onClick={logoutFunc}><IoMdExit size={18} /></button>  
                 </div>
             </div>
     )

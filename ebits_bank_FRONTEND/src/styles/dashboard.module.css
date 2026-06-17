@@ -1,61 +1,499 @@
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modalContent {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  width: 350px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90vw;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-.modalContent input {
-    height: 35px;
-    width: 80%;
-    padding-inline: 5px;
-}
-.modalContent textarea{
-    margin-top: 10px;
-    width: 90%;
-    border-radius: 5px;
-    padding: 7px;
-    min-height: 40px;
-    outline: none;
-}
-.modalContent button{
-    height: 30px;
-    width: 50%;
-    margin-top: 10px;
+.modalContent h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a1a2e;
+  text-align: center;
+  width: 100%;
 }
 
-.noAccDiv{
-  background-Color:rgba(0, 28, 118, 0.09);
-  width:100%;
-  display:flex;
-  justify-Content:center; 
-  align-Items:center;
-  border-Radius:10px;
+.modalContent input,
+.modalContent textarea,
+.modalContent select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
 }
-.profile{
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    min-width: 90px;
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-height: 37px;
-    max-height: 37px;
-    margin-left: 12px;
-    cursor: pointer;
-    align-content: center;
+
+.modalContent input:focus,
+.modalContent textarea:focus,
+.modalContent select:focus {
+  border-color: #0d47a1;
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.12);
+}
+
+.modalContent textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.noAccDiv {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  gap: 16px;
+}
+
+.noAccDiv p {
+  color: #6c757d;
+  font-size: 18px;
+  margin: 0;
+}
+
+.noAccDiv button {
+  height: 44px;
+  padding: 0 32px;
+  background: #0d47a1;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.noAccDiv button:hover {
+  background: #1565c0;
+}
+
+.profile {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  min-width: 90px;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 40px;
+  padding: 0 12px;
+  margin-left: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile:hover {
+  border-color: #0d47a1;
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+}
+
+.bottomCard {
+  background: #fff;
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  padding: 24px;
+}
+
+.controlsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.transactionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.controlsGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filterSelect {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  min-width: 150px;
+  height: 38px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filterSelect:focus {
+  border-color: #0d47a1;
+  box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.12);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.pageBtn:hover {
+  background: #f0f4ff;
+  border-color: #0d47a1;
+  color: #0d47a1;
+}
+
+.pageBtnActive {
+  background: #0d47a1;
+  border-color: #0d47a1;
+  color: #fff;
+}
+
+.pageBtnActive:hover {
+  background: #1565c0;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead th {
+  background: #f8f9fc;
+  color: #4a5568;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 2px solid #e8ecf1;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f0f2f5;
+  transition: background 0.15s;
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #f8faff;
+}
+
+.table tbody td {
+  padding: 14px 16px;
+  color: #2d3748;
+  vertical-align: middle;
+}
+
+.tableDate {
+  color: #718096;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.tableDesc {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #4a5568;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.badgeDeposit {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badgeWithdraw {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.badgeReverse {
+  background: #fff8e1;
+  color: #f57f17;
+}
+
+.badgeTransfer {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.amountDeposit {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.amountWithdraw {
+  color: #c62828;
+  font-weight: 600;
+}
+
+.amountReverse {
+  color: #f57f17;
+  font-weight: 600;
+}
+
+.amountDefault {
+  font-weight: 600;
+}
+
+.accountLink {
+  color: #0d47a1;
+  font-weight: 500;
+}
+
+.balanceCell {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.commissionCell {
+  color: #718096;
+}
+
+.reverseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.reverseBtn:hover {
+  background: #fce4ec;
+}
+
+.addAccountBtn {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed #d0d5dd;
+  border-radius: 16px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 15px;
+  flex-shrink: 0;
+}
+
+.addAccountBtn:hover {
+  border-color: #0d47a1;
+  background: #f0f4ff;
+}
+
+.addAccountBtn svg {
+  color: #98a2b3;
+  transition: color 0.2s;
+}
+
+.addAccountBtn:hover svg {
+  color: #0d47a1;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btnPrimary {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #0d47a1;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btnPrimary:hover {
+  background: #1565c0;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  flex: 1;
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  color: #555;
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.transferAccountBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f4ff;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.transferAccountBtn:hover {
+  background: #e3edff;
+}
+
+.transferAccountBtnSelected {
+  border-color: #0d47a1;
+  background: #e3edff;
+}
+
+.transferAccNumber {
+  font-weight: 600;
+  color: #333;
+}
+
+.transferAccBalance {
+  padding: 4px 12px;
+  background: #0d47a1;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.reverseModalText {
+  text-align: center;
+  color: #555;
+  line-height: 1.6;
+  font-size: 15px;
+  margin: 0;
+}
+
+.createAccountRow {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  align-items: center;
+}
+
+.createAccountRow select {
+  flex: 1;
+}
+
+.btnCreateAccount {
+  padding: 0 24px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #0d47a1;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.btnCreateAccount:hover {
+  background: #1565c0;
 }
