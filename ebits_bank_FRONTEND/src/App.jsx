@@ -1,5 +1,4 @@
 import React from 'react';
-//pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -8,13 +7,14 @@ import Admin from './pages/Admin';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Modal from "react-modal";
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationBanner from './components/NotificationBanner';
 
 Modal.setAppElement('#root');
 
-
 function App() {
   return (
-    <div>
+    <NotificationProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -24,7 +24,8 @@ function App() {
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </Router>
-    </div>
+      <NotificationBanner />
+    </NotificationProvider>
   );
 }
 

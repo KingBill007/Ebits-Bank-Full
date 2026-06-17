@@ -5,26 +5,20 @@ import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import {URL} from '../data/URL';
-import Modal from 'react-modal';
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { useNotification } from '../context/NotificationContext';
 
 function Login() {
 
   const [email, setemail] = useState();
   const [password, setpassword] = useState();
   const [showPassword,setshowPassword] = useState(false)
+  const { addNotification } = useNotification();
 
   const navigate = useNavigate();
   const navigateTo = (location) =>{
     navigate('/'+location);
-  }
-
-  const [errorOpen, seterrorOpen] = useState(false);
-  const [errorMsg,seterrorMsg] = useState('Error');
-  const showError = (message)=>{
-    seterrorMsg("Error: "+message);
-    seterrorOpen(true);
   }
 
   const check =()=>{
@@ -37,18 +31,10 @@ function Login() {
         navigateTo('dashboard')
       }
     }
-
-    if (errorOpen) {
-    const timer = setTimeout(() => {
-      seterrorOpen(false);  // this triggers fade-out
-    }, 10000); // show for 3 seconds
-
-    return () => clearTimeout(timer);
-  }
   }
   useEffect(()=>{
     check()
-  },[errorOpen])
+  },[])
 
   const Login = async (e)=>{
     e.preventDefault();
@@ -60,7 +46,7 @@ function Login() {
         })
         const info = response.data;
         if (!response.data.Sucess){
-          showError(response.data.message)
+          addNotification(response.data.message, 'error')
           return;
         }else if (response.data.Sucess){
           Cookies.set('userId', response.data.userId);
@@ -72,7 +58,7 @@ function Login() {
           }
         }
     }catch(err){
-      showError(err);
+      addNotification(err.message, 'error')
       console.log(err)
     }
   }
@@ -106,17 +92,6 @@ function Login() {
         <button className="signUpBtnLight" onClick={()=>navigateTo('signup')}>Sign Up</button>
         </p>
       </div>
-
-        <Modal //modal for ERROR!!!
-            name="errorModal"
-            isOpen={errorOpen} 
-            onRequestClose={() => seterrorOpen(false)} 
-            className='errorContent' 
-            overlayClassName='errorOverlay'
-            closeTimeoutMS={300}   // wait 300ms before unmounting
-        >
-          {errorMsg}
-        </Modal>
     </div>
   );
 }

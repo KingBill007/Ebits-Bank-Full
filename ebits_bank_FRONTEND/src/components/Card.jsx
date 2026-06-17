@@ -3,7 +3,7 @@ import styles from "../styles/card.module.css";
 import { PiHandDepositFill } from "react-icons/pi";
 import { PiHandWithdrawFill } from "react-icons/pi";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
-import { FaHistory } from "react-icons/fa";
+import { FaHistory, FaDownload } from "react-icons/fa";
 import { useState } from "react";
 
 function Card (props){
@@ -36,8 +36,9 @@ function Card (props){
           </div>
           <div className={styles.actions}>
             {/* <span className={styles.typeBadge}>{props.type}</span> */}
-            <button className={styles.iconBtn} onClick={props.transfer}><FaMoneyBillTransfer color="#dc3545" size={22} /></button>
-            <button className={styles.iconBtn} onClick={()=>props.history(props.typeId._id)}><FaHistory color="#718096" size={20} /></button>
+            <button className={styles.iconBtn} onClick={props.transfer} title="transfer money to other account"><FaMoneyBillTransfer color="#dc3545" size={22} /></button>
+            <button className={styles.iconBtn} onClick={()=>props.history(props.typeId._id)} title="display transaction history"><FaHistory color="#718096" size={20} /></button>
+            <button className={styles.iconBtn} onClick={()=>props.download(props.account)} title="download transaction history"><FaDownload color="#2e7d32" size={18} /></button>
           </div>
         </div>
         <div className={styles.right}> 

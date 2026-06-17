@@ -9,8 +9,12 @@ import Modal from 'react-modal';
 import styles from '../styles/dashboard.module.css';
 import { FaPlus } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-import { Oval } from 'react-loader-spinner';//loading spinner
+import { Oval } from 'react-loader-spinner';
 import { IoArrowUndoCircleOutline } from "react-icons/io5";
+import SpendingChart from '../components/SpendingChart';
+import { useNotification } from '../context/NotificationContext';
+
+const LARGE_WITHDRAWAL_THRESHOLD = 1000;
 
 function Dashboard () {
     const [data, setdata] = useState([]);
@@ -28,7 +32,7 @@ function Dashboard () {
     const [activeType, setactiveType] = useState('');
     const [activeTypeId, setactiveTypeId] = useState();
     const [accountTypes, setaccountTypes] = useState();
-    const [createType, setcreateType] = useState();//work on this
+    const [createType, setcreateType] = useState();
     const [depOpen,setdepOpen] = useState(false);
     const [revOpen,setrevOpen] = useState(false);
     const [createOpen,setcreateOpen] = useState(false);
@@ -40,16 +44,8 @@ function Dashboard () {
     const [pagesArray, setpagesArray] = useState([1,2,3,4,5]);
     const firstRender = useRef(true)
     const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    const { addNotification } = useNotification();
 
-    //ERROR display function
-    const [errorOpen, seterrorOpen] = useState(false);
-    const [errorMsg,seterrorMsg] = useState('Error');
-    const showError = (message)=>{
-        seterrorMsg("Error: "+message);
-        seterrorOpen(true);
-    }
-
-    //navigation function
     const navigate = useNavigate();
     const navigateTo = (location) =>{
         navigate('/'+location);
@@ -79,7 +75,7 @@ function Dashboard () {
             setaccountTypes(refined);
             setcreateType(refined[0]._id);
             //console.log('all account types: ',refined)
-        }catch(err){showError(err.message)}
+        }catch(err){addNotification(err.message, 'error')}
     }
 
     //set transactions filter
@@ -95,7 +91,7 @@ function Dashboard () {
         try{
             const history = await axios.get(`${URL.baseURL}${URL.API_URL}/transactions/getuser/${userId}/${selectVal}/${page}`);
             setdata(history.data.message);
-        }catch(err){showError(err.message)}
+        }catch(err){addNotification(err.message, 'error')}
     }
     //Check if userId has accounts and save accounts
     const checkAccounts = async () =>{
@@ -127,33 +123,23 @@ function Dashboard () {
                 setInfo([])
                 //console.log('User Has no Accounts')
             }
-            //filter the sum of user accounts
             const totalValue = response.data.filter(acc => acc.userId._id === userId).reduce((sum, acc) => sum + acc.Value, 0);
             settotalBal(totalValue)
 
             //get User transaction history
             getHistory();
 
-            //set pages array
             if(page>3){
                 setpagesArray([page-2,page-1,page,page+1,page+2])
             }else{setpagesArray([1,2,3,4,5])}
-
-            if (errorOpen) {
-                const timer = setTimeout(() => {
-                seterrorOpen(false);  // this triggers fade-out
-                }, 10000); // show for 3 seconds
-            
-                return () => clearTimeout(timer);
-            }
         }catch(err){
-            showError(err)
+            addNotification(err.message, 'error')
         }
     }
     useEffect(()=>{
         checkAccounts();
         getacctypes();
-    },[errorOpen,selectVal,page])
+    },[selectVal,page])
 
     //Opens Available Modals for deposit and withdraw
     const openModal = async (method,type,modalName,accNo,typeId)=>{
@@ -181,14 +167,13 @@ function Dashboard () {
 
         if (method !== "Reverse"){
             if (depAmount <= 0 || isNaN(depAmount)){
-                showError(`Your ${method} amount is invalid`)
+                addNotification(`Your ${method} amount is invalid`, 'error')
                 return;
             }
         }
 
         try{
             setisLoading(true)
-            //send deposit to server
             const response = await axios.post(`${URL.baseURL}${URL.API_URL}/accounts/deposit`,{
                 accNumber: activeAccNo,
                 accTypeId: activeTypeId,
@@ -199,15 +184,28 @@ function Dashboard () {
             });
 
             if (!response.data.Sucess){
-                showError(response.data.message)
+                addNotification(response.data.message, 'error')
+                setisLoading(false)
+                return;
             }
+
+            if (method === 'Deposit') {
+                addNotification(`Successfully deposited Gh₵${depAmount.toFixed(2)}`, 'success');
+            } else if (method === 'Withdraw') {
+                addNotification(`Withdrew Gh₵${depAmount.toFixed(2)} from your account`, 'info');
+                if (depAmount >= LARGE_WITHDRAWAL_THRESHOLD) {
+                    addNotification(`Large withdrawal of Gh₵${depAmount.toFixed(2)} processed. Please review your account activity.`, 'warning', 8000);
+                }
+            }
+
             checkAccounts()
             setdepOpen(false);
             setrevOpen(false);
             setisLoading(false)
             cleanUp()
         }catch(err){
-            showError(err)
+            addNotification(err.message, 'error')
+            setisLoading(false)
         }
     }
 
@@ -220,14 +218,14 @@ function Dashboard () {
         setmethod('Reverse');
 
         if (rowMethod === 'Reverse' || rowMethod === 'Withdraw'){
-            showError('Cannot reverse a reversal or withdrawal');
+            addNotification('Cannot reverse a reversal or withdrawal', 'error');
             setrevOpen(false)
             return;
         }
         if(rowMethod==='Deposit'){
             setdepAmount(amount);
         }else{
-            showError('Invalid Reversal')
+            addNotification('Invalid Reversal', 'error')
             setrevOpen(false);
             return;
         }
@@ -244,15 +242,15 @@ function Dashboard () {
                     userId: userId
                 }
             );
-            console.log(createType)
             checkAccounts();
             setcreateOpen(false)
             if (!response.data.Sucess){
-                showError(response.data.message)
+                addNotification(response.data.message, 'error')
+            } else {
+                addNotification('Account created successfully', 'success');
             }
-            //console.log('response: ',response)
         }catch(err){
-            showError(err)
+            addNotification(err.message, 'error')
         }
     }
 
@@ -262,18 +260,45 @@ function Dashboard () {
             const response = await axios.get(`${URL.baseURL}${URL.API_URL}/accounts/getuserAccs/${userId}/${acNumber}`);
             setotherAccs(response.data.message)
         }catch(err){
-            showError(err)
+            addNotification(err.message, 'error')
         }
         setactiveaccNo(acNumber);
         settransModal(true);
         setmethod('Transfer');
         setactiveType(type)
     }
+    const downloadStatement = (accNumber) => {
+        const accountTxns = data.filter(t => t.accNumber == accNumber);
+        if (accountTxns.length === 0) {
+            addNotification('No transactions found for this account', 'info');
+            return;
+        }
+        const headers = ['Date', 'Description', 'Account Type', 'Type', 'Amount', 'Balance', 'Commission'];
+        const rows = accountTxns.map(t => [
+            `"${formatDateTime(t.date)}"`,
+            `"${(t.description || '').replace(/"/g, '""')}"`,
+            `"${t.accTypeId?.Name || ''}"`,
+            t.type,
+            t.Value,
+            t.balance.toFixed(2),
+            Number(t.commision || 0).toFixed(2),
+        ]);
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `statement_${accNumber}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        addNotification('Statement downloaded', 'success');
+    };
+
     //transfer from one account to another
     const transferFunc = async()=>{
         try{
             if(targetaccNo == null || transAmount <= 0){
-                showError('Invalid Entry');
+                addNotification('Invalid transfer entry', 'error');
                 settransModal(false)
                 return;
             }
@@ -283,11 +308,15 @@ function Dashboard () {
                 userId : userId,
                 targetAccNo : targetaccNo
             });
-            if(response.data.Sucess==false){showError(response.data.message)}
+            if(response.data.Sucess==false){
+                addNotification(response.data.message, 'error')
+            } else {
+                addNotification(`Transferred Gh₵${transAmount.toFixed(2)} successfully`, 'success');
+            }
             settransModal(false);
             checkAccounts()
         }catch(err){
-            showError(err)
+            addNotification(err.message, 'error')
         }
     }
     
@@ -308,6 +337,7 @@ function Dashboard () {
                                         func={openModal}   
                                         transfer={()=>{settransAmount(0);settargetaccNo(); getseperateAccs(item.accType,item.accNumber)}} 
                                         history={setFilter}
+                                        download={downloadStatement}
                                     />
                                     {info.length < 2 ?
                                         <button className={styles.addAccountBtn} onClick={()=>{setcreateOpen(true)}}><FaPlus size={40} /></button> :
@@ -323,6 +353,7 @@ function Dashboard () {
                         </div>)
                     }    
                 </div>
+                <SpendingChart data={data} />
                 <div className={`bottomContent ${styles.bottomCard}`}>
                     <div className={styles.controlsBar}>
                         <span className={styles.transactionTitle}>Transaction History</span>
@@ -488,16 +519,6 @@ function Dashboard () {
                                 }
                             </button>
                         </div>
-                </Modal>
-                <Modal //modal for ERROR!!!
-                    name="errorModal"
-                    isOpen={errorOpen} 
-                    onRequestClose={() => seterrorOpen(false)} 
-                    className='errorContent' 
-                    overlayClassName='errorOverlay'
-                    closeTimeoutMS={300}   // wait 300ms before unmounting
-                >
-                    {errorMsg}
                 </Modal>
         </div>
     )
